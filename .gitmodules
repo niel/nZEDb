@@ -1,0 +1,3 @@
+[submodule "libraries/nZEDb"]
+	path = libraries/nZEDb
+	url = git@github.com:nZEDb/nZEDb.git
