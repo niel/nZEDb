@@ -38,7 +38,7 @@ Session::config(array(
  * @see lithium\action\Request::$data
  * @see lithium\security\Auth
  */
-// use lithium\security\Auth;
+use lithium\security\Auth;
 
 // Auth::config(array(
 // 	'default' => array(
@@ -48,4 +48,13 @@ Session::config(array(
 // 	)
 // ));
 
+Auth::config(
+	array(
+		'default' => array(
+			'adapter' => 'Form',
+			'model' => 'Users',
+			'fields' => array('username', 'password')
+		)
+	)
+);
 ?>
