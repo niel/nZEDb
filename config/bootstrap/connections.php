@@ -69,4 +69,56 @@ use lithium\data\Connections;
 // 	'encoding' => 'UTF-8'
 // ));
 
+$config = LITHIUM_APP_PATH . '/libraries/nZEDb/www/config.php';
+if (file_exists($config)) {
+	require_once $config;
+	switch (DB_SYSTEM)
+	{
+		case 'mysql':
+			$adapter = 'MySql';
+			break;
+		case 'pgsql':
+			$adapter = 'PostgreSql';
+
+		default:
+			break;
+	}
+
+	if (isset($adapter)) {
+		Connections::add('default',
+			array(
+				'type'		=> 'database',
+				'adapter'	=> $adapter,
+				'host'		=> DB_HOST,
+				'port'		=> DB_PORT,
+				'login'		=> DB_USER,
+				'password'	=> DB_PASSWORD,
+				'database'	=> DB_NAME,
+				'encoding'	=> 'UTF-8'
+			)
+		);
+	}
+} else {
+	//throw new ErrorException("Couldn't open nZEDb's configuration file!");
+}
+
+/*
+use li3_nzedb\models\Users;
+use lithium\security\Password;
+
+Users::applyFilter('save',
+	function($self, $params, $chain)
+	{
+		if ($params['data']) {
+			$params['entity']->set($params['data']);
+			$params['data'] = array();
+		}
+		if (!$params['entity']->exists()) {
+			$params['entity']->password = Password::hash($params['entity']->password);
+		}
+		return $chain->next($self, $params, $chain);
+	}
+);
+ */
+
 ?>
