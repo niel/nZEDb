@@ -122,4 +122,20 @@ Libraries::add('li3_nzedb', array('default' => true));
  */
 // Libraries::add('li3_docs');
 
+Libraries::add('nZEDb',
+	array(
+		'prefix' => false,
+		'suffix' => '.php',
+		'loader' => null,
+		'includePath' => false,
+/*		'transform' =>
+			function($class, $options)
+			{
+				return $options['path'] . '/www/lib/' . $class;
+			},*/
+		'bootstrap' => true,
+		'defer' => true,
+		'default' => false
+	)
+);
 ?>
