@@ -8,6 +8,9 @@
 
 namespace li3_nzedb\controllers;
 
+use lithium\data\Connections;
+use li3_nzedb\models\Sites;
+
 /**
  * This controller is used for serving static pages by name, which are located in the `/views/pages`
  * folder.
@@ -23,19 +26,39 @@ namespace li3_nzedb\controllers;
  * For example, browsing to `/pages/about/company` will render
  * `/views/pages/about/company.html.php`.
  */
-class PagesController extends \lithium\action\Controller {
+class PagesController extends \lithium\action\Controller
+{
+	protected $_render = array();
 
 	public function view() {
 		$options = array();
 		$path = func_get_args();
 
-		if (!$path || $path === array('home')) {
-			$path = array('home');
+		$config = Connections::config();
+		if (!$path || $path === array('home') || !$config) {
+			if (!$config || !$this->checkSite()) {
+				$this->_render['layout'] = 'setup';
+				$path = array('setup');
+			} else {
+				$theme = Sites::find('first', array('conditions' => array('setting' => 'style')));
+				$this->_render['layout'] = strtolower($theme->data('value'));
+				$path = array('home');
+			}
 			$options['compiler'] = array('fallback' => true);
 		}
 
 		$options['template'] = join('/', $path);
 		return $this->render($options);
+	}
+
+	private function checkSite()
+	{
+		try {
+			$result = Sites::first(array('conditions' => array('id' => '1')));
+		} catch (Exception $ex) {
+			return false;
+		}
+		return $result;
 	}
 }
 
