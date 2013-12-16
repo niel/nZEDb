@@ -13,7 +13,8 @@
 	<title>Application &gt; <?php echo $this->title(); ?></title>
 	<?php echo $this->html->style(array('lithified',
 		'font-awesome.min',
-		'bootstrap-combined.no-icons.min',
+		/*'bootstrap-combined.no-icons.min',*/
+		'bootstrap.min',
 		'jquery.qtip',
 		'style'
 		)); ?>
@@ -25,14 +26,6 @@
 	<div class="container-medium">
 
 		<div class="masthead">
-			<ul class="nav nav-pills pull-right">
-				<li>
-					<a href="/login">Login</a>
-				</li>
-				<li>
-					<a href="/join">Register</a>
-				</li>
-			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>
 		</div>
 
