@@ -11,11 +11,7 @@
 <head>
 	<?php echo $this->html->charset();?>
 	<title>Application &gt; <?php echo $this->title(); ?></title>
-	<?php echo $this->html->style(array('bootstrap.min', 'lithified',
-		'font-awesome.min',
-		'jquery.qtip',
-		'style'
-		)); ?>
+	<?php echo $this->html->style(array('bootstrap.min', 'lithified')); ?>
 	<?php echo $this->scripts(); ?>
 	<?php echo $this->styles(); ?>
 	<?php echo $this->html->link('Icon', null, array('type' => 'icon')); ?>
