@@ -1,16 +1,38 @@
 <?php
-/**
- * Lithium: the most rad php framework
- *
- * @copyright     Copyright 2013, nZEDb (http://nzedb.com)
- * @license       http://opensource.org/licenses/bsd-license.php The BSD License
- */
+/*
+Copyright (C) 2013 nZEDb
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 namespace li3_nzedb\models;
 
 class Sites extends \lithium\data\Model
 {
 	protected $_meta = array('source' => 'site');
+
+	static public function setting($setting)
+	{
+		$result = self::find(array(
+				'fields' => array('setting', 'value'),
+				'conditions' => array(
+					'setting' => array('=' => $setting)
+				)
+			)
+		);
+		return $result->data('value');
+	}
 }
 
 ?>
