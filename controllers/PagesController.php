@@ -47,7 +47,9 @@ class PagesController extends \lithium\action\Controller
 			}
 			$options['compiler'] = array('fallback' => true);
 		}
-		$this->set(['auth' => Auth::check('default', $this->request)]);
+		$auth = Auth::check('default', $this->request);
+
+		$this->set(['auth' => $auth]);
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
