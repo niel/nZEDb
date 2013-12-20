@@ -27,10 +27,10 @@
 		<div class="masthead">
 			<ul class="nav nav-pills pull-right">
 				<li>
-					<a href="/login">Login</a>
+					<a href="/<?php	if ($auth) { echo 'profile'; } else { echo 'join'; } ?>"><?php	if ($auth) { echo 'Profile'; } else { echo 'Register'; } ?></a>
 				</li>
 				<li>
-					<a href="/join">Register</a>
+					<a href="/log<?php	if ($auth) { echo 'out'; } else { echo 'in'; } ?>">Log<?php	if ($auth) { echo 'out'; } else { echo 'in'; } ?></a>
 				</li>
 			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>
