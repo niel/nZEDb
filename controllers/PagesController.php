@@ -9,6 +9,7 @@
 namespace li3_nzedb\controllers;
 
 use lithium\data\Connections;
+use lithium\security\Auth;
 use li3_nzedb\models\Sites;
 
 /**
@@ -46,7 +47,7 @@ class PagesController extends \lithium\action\Controller
 			}
 			$options['compiler'] = array('fallback' => true);
 		}
-
+		$this->set(['auth' => Auth::check('default', $this->request)]);
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
