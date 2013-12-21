@@ -1,3 +1,6 @@
 [submodule "libraries/nZEDb"]
 	path = libraries/nZEDb
 	url = git@github.com:nZEDb/nZEDb.git
+[submodule "libraries/li3_quality"]
+	path = libraries/li3_quality
+	url = https://github.com/UnionOfRAD/li3_quality.git
