@@ -1,9 +1,20 @@
 <?php
 /**
- * Lithium: the most rad php framework
+ * Copyright (C) 2013 nZEDb
  *
- * @copyright     Copyright 2013, Union of RAD (http://union-of-rad.org)
- * @license       http://opensource.org/licenses/bsd-license.php The BSD License
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program (see LICENSE.txt in the base directory.  If
+ * not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace li3_nzedb\controllers;
@@ -37,7 +48,7 @@ class PagesController extends \lithium\action\Controller
 
 		$config = Connections::config();
 		if (!$path || $path === array('home') || !$config) {
-			if (!$config || !$this->checkSite()) {
+			if (!$config || !$this->_checkSite()) {
 				$this->_render['layout'] = 'setup';
 				$path = array('setup');
 			} else {
@@ -48,13 +59,16 @@ class PagesController extends \lithium\action\Controller
 			$options['compiler'] = array('fallback' => true);
 		}
 		$auth = Auth::check('default', $this->request);
+		$link1 = $auth ? 'out' : 'in';
+		$link2 = $auth ? 'profile' : 'join';
+		$label2 = $auth ? 'Profile' : 'Register';
 
-		$this->set(['auth' => $auth]);
+		$this->set(['auth' => $auth, 'link1' => $link1, 'link2' => $link2, 'label2' => $label2]);
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
 
-	private function checkSite()
+	protected function _checkSite()
 	{
 		try {
 			$result = Sites::first(array('conditions' => array('id' => '1')));
