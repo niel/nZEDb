@@ -14,11 +14,11 @@ class HelloWorldController extends \lithium\action\Controller {
 		return $this->render(array('layout' => false));
 	}
 
-	public function to_string() {
+	public function toString() {
 		return "Hello World";
 	}
 
-	public function to_json() {
+	public function toSson() {
 		return $this->render(array('json' => 'Hello World'));
 	}
 }

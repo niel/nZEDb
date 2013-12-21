@@ -1,9 +1,20 @@
 <?php
 /**
- * Lithium: the most rad php framework
+ * Copyright (C) 2013 nZEDb
  *
- * @copyright     Copyright 2013, nZEDb (http://nzedb.com)
- * @license       http://opensource.org/licenses/bsd-license.php The BSD License
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program (see LICENSE.txt in the base directory.  If
+ * not, see <http://www.gnu.org/licenses/>.
  */
 ?>
 <!doctype html>
@@ -15,7 +26,8 @@
 		'font-awesome.min',
 		'bootstrap-combined.no-icons.min',
 		'jquery.qtip',
-		'style'
+		'style',
+		'nzedb'
 		)); ?>
 	<?php echo $this->scripts(); ?>
 	<?php echo $this->styles(); ?>
