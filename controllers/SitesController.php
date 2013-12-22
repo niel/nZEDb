@@ -26,7 +26,7 @@ class SitesController extends \lithium\action\Controller
 	public function view()
 	{
 		$user = Auth::check('default', $this->request);
-		if ($user->data()['role'] == 2) {
+		if ($user->data()['role'] === 2) {
 
 		} else {
 			return $this->redirect('/');
