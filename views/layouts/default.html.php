@@ -41,11 +41,16 @@
 
 		<div class="masthead">
 			<ul class="nav nav-pills pull-right">
+				<?php if ($admin): ?>
 				<li>
-					<a href="/<?php	if ($user) { echo 'profile'; } else { echo 'join'; } ?>"><?php	if ($user) { echo 'Profile'; } else { echo 'Register'; } ?></a>
+					<?php  echo $this->html->link('Admin', '/admin'); ?>
+				</li>
+				<?php endif; ?>
+				<li>
+					<?php echo $this->html->link($member['label'], $member['link']); ?>
 				</li>
 				<li>
-					<a href="/log<?php	if ($user) { echo 'out'; } else { echo 'in'; } ?>">Log<?php	if ($user) { echo 'out'; } else { echo 'in'; } ?></a>
+					<?php echo $this->html->link("Log" . $log, "/log" . $log); ?>
 				</li>
 			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>

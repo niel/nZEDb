@@ -1,5 +1,6 @@
 <?php
 /**
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,30 +16,19 @@
  * not, see:
  *
  * @link <http://www.gnu.org/licenses/>.
- * @author Niel Archer
+ * @author Niel Archer <niel.archer@gmail.com>
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\models;
-
-class Sites extends \lithium\data\Model
-{
-	protected $_meta = array('source' => 'site');
-
-	static public function get($setting)
-	{
-		$setting = self::find('first', ['conditions' => ['setting' => ['=' => $setting]]]);
-		return $setting !== false ? $setting->data()['value'] : null;
-	}
-
-	static public function asArray()
-	{
-		$result = self::find('all', ['fields' => ['setting', 'value'], 'order' => ['setting']]);
-		foreach ($result->data() as $setting => $value) {
-			$settings[$setting] = $value;
-		}
-		return $settings;
-	}
-}
-
+use \li3_nzedb\models\Sites;
 ?>
+<div class="none">
+	<table class="data">
+<?php foreach ($settings as $setting => $value): ?>
+		<tr>
+			<th><?= $setting; ?></th>
+			<td><?= $value; ?></td>
+		</tr>
+<?php endforeach; ?>
+	</table>
+</div>

@@ -21,15 +21,19 @@
 
 namespace li3_nzedb\controllers;
 
+use lithium\security\Auth;
+use \li3_nzedb\models\Sites;
+
 class SitesController extends \lithium\action\Controller
 {
 	public function view()
 	{
 		$user = Auth::check('default', $this->request);
-		if ($user->data()['role'] == 2) {
-
-		} else {
+		if ($user['role'] !== 2) {
 			return $this->redirect('/');
+		} else {
+			$settings = Sites::asArray();
+			return compact('settings');
 		}
 	}
 }
