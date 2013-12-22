@@ -27,8 +27,8 @@ class Sites extends \lithium\data\Model
 
 	static public function get($setting)
 	{
-		$result = self::find(['fields' => ['setting', 'value'], 'conditions' => ['setting' => ['=' => $setting]]]);
-		return $result->data('value');
+		$setting = self::find('first', array('conditions' => array('setting' => array('=' => $setting))));
+		return $setting == true ? $setting->data()['value'] : null;
 	}
 }
 
