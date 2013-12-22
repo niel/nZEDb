@@ -76,9 +76,8 @@ class PagesController extends \lithium\action\Controller
 		$log = !empty($user) ? 'out' : 'in';
 		$member['link'] = !empty($user) ? 'profile' : 'join';
 		$member['label'] = !empty($user) ? 'Profile' : 'Register';
-		$admin = ($user && $user['role'] == 2);
 
-		$this->set(compact('admin', 'log', 'member', 'user'));
+		$this->set(compact('log', 'member', 'user'));
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
