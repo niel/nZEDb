@@ -1,20 +1,9 @@
 <?php
 /**
- * Copyright (C) 2013 nZEDb
+ * Lithium: the most rad php framework
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program (see LICENSE.txt in the base directory.  If
- * not, see <http://www.gnu.org/licenses/>.
+ * @copyright     Copyright 2013, nZEDb (http://nzedb.com)
+ * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 ?>
 <!doctype html>
@@ -26,8 +15,7 @@
 		'font-awesome.min',
 		'bootstrap-combined.no-icons.min',
 		'jquery.qtip',
-		'style',
-		'nzedb'
+		'style'
 		)); ?>
 	<?php echo $this->scripts(); ?>
 	<?php echo $this->styles(); ?>
@@ -38,11 +26,14 @@
 
 		<div class="masthead">
 			<ul class="nav nav-pills pull-right">
+				<?php if (isset($user['role']) && $user['role'] == 2) {
+					echo "\t\t\t\t<li>\n\t\t\t\t\t<a href=\"/admin\">Admin</a>\n\t\t\t\t</li>\n";
+				} ?>
 				<li>
-					<a href="/<?php	if ($auth) { echo 'profile'; } else { echo 'join'; } ?>"><?php	if ($auth) { echo 'Profile'; } else { echo 'Register'; } ?></a>
+					<a href="/<?php	if ($user) { echo 'profile'; } else { echo 'join'; } ?>"><?php	if ($user) { echo 'Profile'; } else { echo 'Register'; } ?></a>
 				</li>
 				<li>
-					<a href="/log<?php	if ($auth) { echo 'out'; } else { echo 'in'; } ?>">Log<?php	if ($auth) { echo 'out'; } else { echo 'in'; } ?></a>
+					<a href="/log<?php	if ($user) { echo 'out'; } else { echo 'in'; } ?>">Log<?php	if ($user) { echo 'out'; } else { echo 'in'; } ?></a>
 				</li>
 			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>
