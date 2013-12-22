@@ -41,16 +41,16 @@
 
 		<div class="masthead">
 			<ul class="nav nav-pills pull-right">
-				<?php if ($user['role'] == 2): ?>
+				<?php if ($admin): ?>
 				<li>
 					<?php  echo $this->html->link('Admin', '/admin'); ?>
 				</li>
 				<?php endif; ?>
 				<li>
-					<?php echo $this->html->link($label2, $link2); ?>
+					<?php echo $this->html->link($member['label'], $member['link']); ?>
 				</li>
 				<li>
-					<?php echo $this->html->link("Log$link1", "/log$link1"); ?>
+					<?php echo $this->html->link("Log" . $log, "/log" . $log); ?>
 				</li>
 			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>

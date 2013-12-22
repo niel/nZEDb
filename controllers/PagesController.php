@@ -44,6 +44,14 @@ class PagesController extends \lithium\action\Controller
 {
 	protected $_render = array();
 
+	/**
+	 * This view action first determines if there is a connection to a database,
+	 * and if so, whether the 'site' table exists. Failure results in redirection
+	 * to the setup status page. Success allows continuing to the home page after
+	 * authentication info is checked and passed as $user.
+	 *
+	 * @return mixed
+	 */
 	public function view() {
 		$options = array();
 		$path = func_get_args();
@@ -61,11 +69,16 @@ class PagesController extends \lithium\action\Controller
 			$options['compiler'] = array('fallback' => true);
 		}
 		$user = Auth::check('default', $this->request);
-		$link1 = ($user !== false) ? 'out' : 'in';
-		$link2 = ($user !== false) ? 'profile' : 'join';
-		$label2 = ($user !== false) ? 'Profile' : 'Register';
+		if (!is_array($user)) {
+			$user = false;
+		}
 
-		$this->set(compact('user', 'link1', 'link2', 'label2'));
+		$log = !empty($user) ? 'out' : 'in';
+		$member['link'] = !empty($user) ? 'profile' : 'join';
+		$member['label'] = !empty($user) ? 'Profile' : 'Register';
+		$admin = ($user && $user['role'] == 2);
+
+		$this->set(compact('admin', 'log', 'member', 'user'));
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
