@@ -60,12 +60,12 @@ class PagesController extends \lithium\action\Controller
 			}
 			$options['compiler'] = array('fallback' => true);
 		}
-		$auth = Auth::check('default', $this->request);
-		$link1 = $auth ? 'out' : 'in';
-		$link2 = $auth ? 'profile' : 'join';
-		$label2 = $auth ? 'Profile' : 'Register';
+		$user = Auth::check('default', $this->request);
+		$link1 = $user ? 'out' : 'in';
+		$link2 = $user ? 'profile' : 'join';
+		$label2 = $user ? 'Profile' : 'Register';
 
-		$this->set(['auth' => $auth, 'link1' => $link1, 'link2' => $link2, 'label2' => $label2]);
+		$this->set(compact('user', 'link1', 'link2', 'label2'));
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
