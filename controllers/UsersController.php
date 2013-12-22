@@ -38,8 +38,11 @@ class UsersController extends \lithium\action\Controller
 
 	public function login()
 	{
-		if ($this->request->data && Auth::check('default', $this->request)) {
+		$user = Auth::check('default', $this->request);
+		if ($this->request->data && $user['role'] != 3) {
 			return $this->redirect('/');
+		} else {
+			return $this->redirect('/logout');
 		}
 	}
 
