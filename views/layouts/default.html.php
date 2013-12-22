@@ -41,7 +41,7 @@
 
 		<div class="masthead">
 			<ul class="nav nav-pills pull-right">
-				<?php if ($admin): ?>
+				<?php if (Users::isAdmin($user)): ?>
 				<li>
 					<?php  echo $this->html->link('Admin', '/admin'); ?>
 				</li>
