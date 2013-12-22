@@ -1,6 +1,8 @@
-/nbproject/
+/nbproject/private/
 
 resources/tmp/
 
 php_errors.log
 php-errors.log
+
+/*/*~
