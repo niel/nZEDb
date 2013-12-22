@@ -30,6 +30,15 @@ class Sites extends \lithium\data\Model
 		$setting = self::find('first', ['conditions' => ['setting' => ['=' => $setting]]]);
 		return $setting !== false ? $setting->data()['value'] : null;
 	}
+
+	static public function asArray()
+	{
+		$result = self::find('all', ['fields' => ['setting', 'value'], 'order' => ['setting']]);
+		foreach ($result->data() as $setting => $value) {
+			$settings[$setting] = $value;
+		}
+		return $settings;
+	}
 }
 
 ?>
