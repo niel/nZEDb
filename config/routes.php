@@ -93,8 +93,11 @@ if (!Environment::is('production')) {
  * a top-down fashion.
  */
 
-Router::connect('/login', 'Sessions::add');
-Router::connect('/logout', 'Sessions::delete');
+Router::connect("/login", array('controller' => 'users', 'action' => 'login', 'admin' => null));
+Router::connect("/logout", array('controller' => 'users', 'action' => 'logout', 'admin' => null));
+Router::connect("/register", array('controller' => 'users', 'action' => 'register', 'admin' => null));
+Router::connect("/admin", array('controller' => 'sites', 'action' => 'view', 'admin' => true));
+Router::connect("/profile", array('controller' => 'profiles', 'action' => 'view', 'args' => array(), 'admin' => null));
 
 Router::connect('/{:controller}/{:action}/{:args}');
 ?>

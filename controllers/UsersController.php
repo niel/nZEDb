@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2013 nZEDb
+ * @copyright 2013 nZEDb
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,21 +14,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program (see LICENSE.txt in the base directory.  If
- * not, see <http://www.gnu.org/licenses/>.
+ * not, see:
+ *
+ * @link <http://www.gnu.org/licenses/>.
  */
 
 namespace li3_nzedb\controllers;
 
+use lithium\security\Auth;
 use li3_nzedb\models\Users;
 
 class UsersController extends \lithium\action\Controller
 {
-	public function index() {
-		$users = Users::all();
-		return compact('users');
-	}
-
-	public function add() {
+	public function add()
+	{
 		$user = Users::create($this->request->data);
 
 		if (($this->request->data) && $user->save()) {
@@ -36,6 +35,35 @@ class UsersController extends \lithium\action\Controller
 		}
 		return compact('user');
 	}
-}
+/*
+	public function index()
+	{
+		$users = Users::all();
+		return compact('users');
+	}
+*/
+	public function login()
+	{
+		if ($this->request->data && Auth::check('default', $this->request)) {
+			return $this->redirect('/');
+		}
+		// Handle failed authentication attempts
+	}
+
+	public function logout()
+	{
+		Auth::clear('default');
+		return $this->redirect('/');
+	}
+
+	public function read()
+	{
+
+	}
+
+	public function register()
+	{
+
+	}
 
 ?>
