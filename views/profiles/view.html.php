@@ -1,6 +1,5 @@
 <?php
 /**
- * @copyright 2013 nZEDb
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +16,8 @@
  * not, see:
  *
  * @link <http://www.gnu.org/licenses/>.
+ * @author Niel Archer <niel.archer@gmail.com>
+ * @copyright 2013 nZEDb
  */
 
 use \li3_nzedb\models\Sites;
