@@ -1,5 +1,6 @@
 <?php
 /**
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,27 +16,19 @@
  * not, see:
  *
  * @link <http://www.gnu.org/licenses/>.
- * @author Niel Archer
+ * @author Niel Archer <niel.archer@gmail.com>
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\controllers;
-
-use lithium\security\Auth;
 use \li3_nzedb\models\Sites;
-
-class SitesController extends \lithium\action\Controller
-{
-	public function view()
-	{
-		$user = Auth::check('default', $this->request);
-		if ($user['role'] !== 2) {
-			return $this->redirect('/');
-		} else {
-			$settings = Sites::asArray();
-			return compact('settings');
-		}
-	}
-}
-
 ?>
+<div class="none">
+	<table class="data">
+<?php foreach ($settings as $setting => $value): ?>
+		<tr>
+			<th><?= $setting; ?></th>
+			<td><?= $value; ?></td>
+		</tr>
+<?php endforeach; ?>
+	</table>
+</div>
