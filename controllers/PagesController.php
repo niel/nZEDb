@@ -70,15 +70,14 @@ class PagesController extends \lithium\action\Controller
 		}
 		$user = Auth::check('default', $this->request);
 		if (!is_array($user)) {
-			$user = false;
+			$user = null;
 		}
 
 		$log = !empty($user) ? 'out' : 'in';
 		$member['link'] = !empty($user) ? 'profile' : 'join';
 		$member['label'] = !empty($user) ? 'Profile' : 'Register';
-		$admin = ($user && $user['role'] == 2);
 
-		$this->set(compact('admin', 'log', 'member', 'user'));
+		$this->set(compact('log', 'member', 'user'));
 		$options['template'] = join('/', $path);
 		return $this->render($options);
 	}
