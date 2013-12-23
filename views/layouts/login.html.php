@@ -18,7 +18,6 @@
  * @author Niel Archer
  * @copyright 2013 nZEDb
  */
-use \li3_nzedb\models\Users;
 
 ?>
 <!doctype html>
@@ -39,21 +38,7 @@ use \li3_nzedb\models\Users;
 </head>
 <body class="lithified">
 	<div class="container-medium">
-
 		<div class="masthead">
-			<ul class="nav nav-pills pull-right">
-				<?php if (Users::isAdmin($user)): ?>
-				<li>
-					<?php  echo $this->html->link('Admin', '/admin'); ?>
-				</li>
-				<?php endif; ?>
-				<li>
-					<?php echo $this->html->link($member['label'], $member['link']); ?>
-				</li>
-				<li>
-					<?php echo $this->html->link("Log" . $log, "/log" . $log); ?>
-				</li>
-			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>
 		</div>
 
@@ -68,7 +53,6 @@ use \li3_nzedb\models\Users;
 		<div class="footer">
 			<p class="pull-right">&copy; nZEDb 2013</p>
 		</div>
-
 	</div>
 </body>
 </html>

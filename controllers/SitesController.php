@@ -23,13 +23,16 @@ namespace li3_nzedb\controllers;
 
 use lithium\security\Auth;
 use \li3_nzedb\models\Sites;
+use \li3_nzedb\models\Users;
 
 class SitesController extends \lithium\action\Controller
 {
+	protected $_render = ['layout' => 'admin'];
+
 	public function view()
 	{
 		$user = Auth::check('default', $this->request);
-		if ($user['role'] !== 2) {
+		if (!Users::isAdmin($user)) {
 			return $this->redirect('/');
 		} else {
 			$settings = Sites::asArray();
