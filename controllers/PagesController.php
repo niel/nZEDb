@@ -70,7 +70,7 @@ class PagesController extends \lithium\action\Controller
 		}
 		$user = Auth::check('default', $this->request);
 		if (!is_array($user)) {
-			$user = false;
+			$user = null;
 		}
 
 		$log = !empty($user) ? 'out' : 'in';
