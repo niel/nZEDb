@@ -23,9 +23,56 @@ namespace li3_nzedb\models;
 
 class Users extends \lithium\data\Model
 {
-	static public function isAdmin($user)
+	protected $_schema = array(
+		'id' => ['type' => 'id'],
+		'username' => ['type' => 'string'],
+		'email' => ['type' => 'string'],
+		'role' => ['type' => 'integer'],
+		'host' => ['type' => 'string'],
+		'grabs' => ['type' => 'string'],
+		'rsstoken' => ['type' => 'string'],
+		'createddate' => ['type' => 'date'],
+		'resetguid' => ['type' => 'string'],
+		'lastlogin' => ['type' => 'date'],
+		'apiaccess' => ['type' => 'date'],
+		'invites' => ['type' => 'integer'],
+		'invitedby' => ['type' => 'integer'],
+		'movieview' => ['type' => 'integer'],
+		'musicview' => ['type' => 'integer'],
+		'consoleview' => ['type' => 'integer'],
+		'bookview' => ['type' => 'integer'],
+		'saburl' => ['type' => 'string'],
+		'sabapikey' => ['type' => 'string'],
+		'sabapikeytype' => ['type' => 'boolean'],
+		'sabpriority' => ['type' => 'boolean'],
+		'userseed' => ['type' => 'string']
+	);
+
+	/**
+	 * Test if the user has the admin role.
+	 *
+	 * @param array|false $user The result of an Auth::check().
+	 * @return boolean True if the user has the admin role.
+	 */
+	static public function isAdmin(array $user = null)
 	{
-		return ($user['role'] === 2);
+		if (is_array($user)) {
+			return ($user['role'] == 2);
+		}
+		return $user;
+	}
+
+	/**
+	 * Test if the user's account has been disabled.
+	 *
+	 * @param array $user The result of a valid Auth::check(). i.e. no false allowed.
+	 */
+	static public function isDisabled(array $user)
+	{
+		if (is_array($user)) {
+			return ($user['role'] === 3);
+		}
+		return $user;
 	}
 }
 
