@@ -18,3 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #login { width: 200px; height: 200px; margin: 0 auto; }
 
 .centred {text-align: center; }
+
+.flash-message { background-color: yellow; color: red; font-size: x-large;	padding: 20px;	text-align: center; }
+
+div.footer p.right { left: auto; right: 10px; }
