@@ -23,31 +23,6 @@ namespace li3_nzedb\models;
 
 class Users extends \lithium\data\Model
 {
-	protected $_schema = array(
-		'id' => ['type' => 'id'],
-		'username' => ['type' => 'string'],
-		'email' => ['type' => 'string'],
-		'role' => ['type' => 'integer'],
-		'host' => ['type' => 'string'],
-		'grabs' => ['type' => 'string'],
-		'rsstoken' => ['type' => 'string'],
-		'createddate' => ['type' => 'date'],
-		'resetguid' => ['type' => 'string'],
-		'lastlogin' => ['type' => 'date'],
-		'apiaccess' => ['type' => 'date'],
-		'invites' => ['type' => 'integer'],
-		'invitedby' => ['type' => 'integer'],
-		'movieview' => ['type' => 'integer'],
-		'musicview' => ['type' => 'integer'],
-		'consoleview' => ['type' => 'integer'],
-		'bookview' => ['type' => 'integer'],
-		'saburl' => ['type' => 'string'],
-		'sabapikey' => ['type' => 'string'],
-		'sabapikeytype' => ['type' => 'boolean'],
-		'sabpriority' => ['type' => 'boolean'],
-		'userseed' => ['type' => 'string']
-	);
-
 	/**
 	 * Test if the user has the admin role.
 	 *
@@ -56,8 +31,8 @@ class Users extends \lithium\data\Model
 	 */
 	static public function isAdmin(array $user = null)
 	{
-		if (is_array($user)) {
-			return ($user['role'] == 2);
+		if (!empty($user)) {
+			return ((integer) $user['role'] === 2);
 		}
 		return $user;
 	}
@@ -69,8 +44,8 @@ class Users extends \lithium\data\Model
 	 */
 	static public function isDisabled(array $user)
 	{
-		if (is_array($user)) {
-			return ($user['role'] === 3);
+		if (!empty($user)) {
+			return ((integer) $user['role'] === 3);
 		}
 		return $user;
 	}
