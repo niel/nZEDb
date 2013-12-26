@@ -39,6 +39,11 @@
 <body class="lithified">
 	<div class="container-medium">
 		<div class="masthead">
+			<?php if (false && $vars['reset']): ?>
+			<ul class="nav nav-pills pull-right">
+				<li><?php echo $this->html->link('Reset', '/reset') ?></li>
+			</ul>
+			<?php endif; ?>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>
 		</div>
 
@@ -51,7 +56,8 @@
 		<hr>
 
 		<div class="footer">
-			<p class="pull-right">&copy; nZEDb 2013</p>
+			<p class="right">&copy; nZEDb 2013</p>
+			<?php if (isset($debug)) var_dump ($debug); ?>
 		</div>
 	</div>
 </body>

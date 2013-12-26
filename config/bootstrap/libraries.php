@@ -115,12 +115,15 @@ Libraries::add('lithium');
  * Add the application.  You can pass a `'path'` key here if this bootstrap file is outside of
  * your main application, but generally you should not need to change any settings.
  */
+
 Libraries::add('li3_nzedb', array('default' => true));
 
 /**
  * Add some plugins:
  */
 // Libraries::add('li3_docs');
+
+Libraries::add('li3_flash_message');
 
 Libraries::add('li3_quality');
 

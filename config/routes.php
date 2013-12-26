@@ -93,11 +93,13 @@ Router::connect('/{:controller}/{:action}/{:id:\d+}');
  * a top-down fashion.
  */
 
-Router::connect("/login", array('controller' => 'users', 'action' => 'login', 'admin' => null));
-Router::connect("/logout", array('controller' => 'users', 'action' => 'logout', 'admin' => null));
-Router::connect("/register", array('controller' => 'users', 'action' => 'register', 'admin' => null));
-Router::connect("/admin", array('controller' => 'sites', 'action' => 'view', 'admin' => true));
-Router::connect("/profile", array('controller' => 'profiles', 'action' => 'view', 'args' => array(), 'admin' => null));
+Router::connect("/admin",		array('controller' => 'sites', 'action' => 'view', 'admin' => true));
+Router::connect("/login",		array('controller' => 'users', 'action' => 'login', 'admin' => null));
+Router::connect("/logout",		array('controller' => 'users', 'action' => 'logout', 'admin' => null));
+//Router::connect("/profile/{:args}", array('controller' => 'users', 'action' => 'read', 'args' => array(), 'admin' => null));
+Router::connect("/profile",		array('controller' => 'profiles', 'action' => 'view', 'args' => array(), 'admin' => null));
+Router::connect("/register",	array('controller' => 'users', 'action' => 'register', 'admin' => null));
+Router::connect("/reset",		array('controller' => 'users', 'action' => 'reset', 'admin' => null));
 
 Router::connect('/{:controller}/{:action}/{:args}');
 ?>

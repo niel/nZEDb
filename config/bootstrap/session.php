@@ -48,30 +48,27 @@ use lithium\security\Auth;
 // 	)
 // ));
 
-Auth::config(
-	array(
-		'default' => array(
-			'adapter' => 'Form',
-			'model' => 'Users',
-			'fields' => array('username', 'password')
-		)
-	)
-);
-
 use li3_nzedb\models\Users;
 use lithium\security\Password;
+
+Auth::config([
+	'default' => [
+		'adapter' => 'Form',
+		'model' => 'Users'
+	],
+]);
+
 
 Users::applyFilter('save',
 	function($self, $params, $chain)
 	{
-		var_dump('filter called');
 		if ($params['data']) {
 			$params['entity']->set($params['data']);
 			$params['data'] = array();
 		}
+
 		if (!$params['entity']->exists()) {
-			//$params['entity']->password = Password::hash($params['entity']->password);
-			$params['entity']->password = sha1($params['entity']->password);
+			$params['entity']->password = Password::hash($params['entity']->password);
 		}
 		return $chain->next($self, $params, $chain);
 	}

@@ -25,12 +25,17 @@
 
 				<?=$this->form->field('username'); ?>
 
+				<?=$this->form->field('email'); ?>
+
+				<?=$this->form->field('firstname'); ?>
+
+				<?=$this->form->field('lastname'); ?>
+
 				<?=$this->form->field('password', array('type' => 'password')); ?>
+
+				<?=$this->form->field('password2', array('label' => 'Repeat password', 'type' => 'password')); ?>
 				<div><p> </p></div>
-				<?=$this->form->submit('Log in'); ?>
+				<?=$this->form->submit('Join'); ?>
 
 			<?=$this->form->end(); ?>
-			<div>
-				<p><a href="/users/amnesia">Forgotten your username?</a> | <a href="/users/reset">Reset your password?</a></p>
-			</div>
 </div>
