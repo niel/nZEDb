@@ -126,7 +126,6 @@ class UsersController extends \lithium\action\Controller
 	public function register()
 	{
 		$this->_render['layout'] = 'login';
-		$this->dummy();
 	}
 
 	/**
@@ -134,6 +133,20 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function reset()
 	{
+		$this->_render['layout'] = 'login';
+		$nopass = true;
+		if ($this->request->data) {
+			$user = Users::find('first', ['conditions' => ['username' => ['=' => $this->request->data['username']]]]);
+			if (!$user) {
+				FlashMessage::write('Unable to find your account, please check your username is correct.');
+				return;
+			}
+
+			// TODO add mail sending code.
+			FlashMessage::write('Email with reset link, sent to your address.');
+			return $this->redirect('/');
+		}
+		return compact('nopass');
 	}
 
 	public function test()
