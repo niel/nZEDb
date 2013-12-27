@@ -11,7 +11,8 @@ echo ""
 exec git clone git@77.99.35.102:li3_nzedb.git
 clear;
 
-cd nZEDb
+//cd nZEDb
+cd li3_nzedb
 
 echo ""
 echo "Setting application directory permissions..."
@@ -26,8 +27,8 @@ echo ""
 echo ""
 echo "Creating a symlink to li3 for you..."
 chmod +x libraries/lithium/console/li3
-ln -s libraries/lithium/console/li3 li3
-alias li3='./li3'
+ln -s libraries/lithium/console/li3 nzedb
+alias nzedb='./nzedb'
 echo ""
 
 echo ""
