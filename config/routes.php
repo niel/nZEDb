@@ -80,6 +80,14 @@ Router::connect('/{:controller}/{:action}/{:id:\d+}');
 // Router::connect('/{:controller}/{:action}/{:id:[0-9a-f]{24}}.{:type}', array('id' => null));
 // Router::connect('/{:controller}/{:action}/{:id:[0-9a-f]{24}}');
 
+Router::connect("/admin/{:args}",			array('controller' => 'sites', 'action' => 'view', 'admin' => true), array('continue' => true));
+Router::connect("/login",					'Users::login');
+Router::connect("/logout",					'Users::logout');
+//Router::connect("/profile/{:args}", array('controller' => 'users', 'action' => 'read', 'args' => array(), 'admin' => null));
+Router::connect("/profile",					'Profiles::view');
+Router::connect("/register/{:step:\d+}",	'Users::register');
+Router::connect("/reset",					'Users::reset');
+
 /**
  * Finally, connect the default route. This route acts as a catch-all, intercepting requests in the
  * following forms:
@@ -92,14 +100,6 @@ Router::connect('/{:controller}/{:action}/{:id:\d+}');
  * In almost all cases, custom routes should be added above this one, since route-matching works in
  * a top-down fashion.
  */
-
-Router::connect("/admin",		array('controller' => 'sites', 'action' => 'view', 'admin' => true));
-Router::connect("/login",		array('controller' => 'users', 'action' => 'login', 'admin' => null));
-Router::connect("/logout",		array('controller' => 'users', 'action' => 'logout', 'admin' => null));
-//Router::connect("/profile/{:args}", array('controller' => 'users', 'action' => 'read', 'args' => array(), 'admin' => null));
-Router::connect("/profile",		array('controller' => 'profiles', 'action' => 'view', 'args' => array(), 'admin' => null));
-Router::connect("/register",	array('controller' => 'users', 'action' => 'register', 'admin' => null));
-Router::connect("/reset",		array('controller' => 'users', 'action' => 'reset', 'admin' => null));
 
 Router::connect('/{:controller}/{:action}/{:args}');
 ?>
