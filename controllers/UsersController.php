@@ -48,6 +48,18 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function amnesia()
 	{
+		$this->_render['layout'] = 'login';
+		if ($this->request->data) {
+			$user = Users::find('first', ['conditions' => ['email' => ['=' => $this->request->data['email']]]]);
+			if (!$user) {
+				FlashMessage::write('Unable to find your account, please check your spelling.');
+				return;
+			}
+
+			// TODO add mail sending code.
+			FlashMessage::write('Email with your user name, sent to your address.');
+			return $this->redirect('/');
+		}
 	}
 
 	/**

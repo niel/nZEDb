@@ -20,7 +20,7 @@
  */
 ?>
 <?=$this->flashMessage->show(); ?>
-<div id="login">
+<div class="login" id="login">
 			<?=$this->form->create(null); ?>
 
 				<?=$this->form->field('username'); ?>
