@@ -31,6 +31,9 @@
 
 			<?=$this->form->end(); ?>
 			<div>
-				<p><a href="/users/amnesia">Forgotten your username?</a> | <a href="/users/reset">Reset your password?</a></p>
+				<ul class="nav">
+					<li><a href="/users/amnesia">Forgotten your username?</a></li>
+					<li><a href="/users/reset">Reset your password?</a></li>
+				</ul>
 			</div>
 </div>
