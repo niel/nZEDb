@@ -15,7 +15,7 @@
  * not, see:
  *
  * @link <http://www.gnu.org/licenses/>.
- * @author Niel Archer
+ * @author niel
  * @copyright 2013 nZEDb
  */
 
