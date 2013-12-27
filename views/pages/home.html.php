@@ -27,3 +27,4 @@ $this->title('Home');
 $this->html->style('debug', array('inline' => false));
 
 ?>
+<?=$this->flashMessage->show(); ?>
