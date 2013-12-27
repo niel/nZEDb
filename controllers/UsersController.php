@@ -15,7 +15,7 @@
  * not, see:
  *
  * @link <http://www.gnu.org/licenses/>.
- * @author Niel Archer
+ * @author niel
  * @copyright 2013 nZEDb
  */
 
@@ -43,7 +43,7 @@ class UsersController extends \lithium\action\Controller
 	}
 
 	/**
-	 * Facility forusers that have forgotten their usernames to have a reminder
+	 * Facility for users that have forgotten their usernames to have a reminder
 	 * sent to their registered email address.
 	 */
 	public function amnesia()
