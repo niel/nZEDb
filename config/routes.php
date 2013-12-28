@@ -80,6 +80,9 @@ Router::connect('/{:controller}/{:action}/{:id:\d+}');
 // Router::connect('/{:controller}/{:action}/{:id:[0-9a-f]{24}}.{:type}', array('id' => null));
 // Router::connect('/{:controller}/{:action}/{:id:[0-9a-f]{24}}');
 
+/**
+ * ### Routes to nZEDb controllers, added for convenience and prettier URLs.
+ */
 //Router::connect("/admin/{:args}",			array('controller' => 'sites', 'action' => 'view', 'admin' => true), array('continue' => true));
 Router::connect("/login",					'Users::login');
 Router::connect("/logout",					'Users::logout');
