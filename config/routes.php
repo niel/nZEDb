@@ -80,7 +80,7 @@ Router::connect('/{:controller}/{:action}/{:id:\d+}');
 // Router::connect('/{:controller}/{:action}/{:id:[0-9a-f]{24}}.{:type}', array('id' => null));
 // Router::connect('/{:controller}/{:action}/{:id:[0-9a-f]{24}}');
 
-Router::connect("/admin/{:args}",			array('controller' => 'sites', 'action' => 'view', 'admin' => true), array('continue' => true));
+//Router::connect("/admin/{:args}",			array('controller' => 'sites', 'action' => 'view', 'admin' => true), array('continue' => true));
 Router::connect("/login",					'Users::login');
 Router::connect("/logout",					'Users::logout');
 //Router::connect("/profile/{:args}", array('controller' => 'users', 'action' => 'read', 'args' => array(), 'admin' => null));
