@@ -125,6 +125,8 @@ Libraries::add('li3_nzedb', array('default' => true));
 
 Libraries::add('li3_flash_message');
 
+Libraries::add('li3_mailer');
+
 Libraries::add('li3_quality');
 
 Libraries::add('nZEDb',
