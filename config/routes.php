@@ -88,7 +88,6 @@ Router::connect("/login",					'Users::login');
 Router::connect("/logout",					'Users::logout');
 //Router::connect("/profile/{:args}", array('controller' => 'users', 'action' => 'read', 'args' => array(), 'admin' => null));
 Router::connect("/profile",					'Profiles::view');
-Router::connect("/register/{:step:\d+}",	'Users::register');
 Router::connect("/reset",					'Users::reset');
 
 /**
