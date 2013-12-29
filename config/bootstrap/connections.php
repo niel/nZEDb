@@ -102,7 +102,7 @@ if (file_exists($config)) {
 		);
 	}
 } else {
-	//throw new ErrorException("Couldn't open nZEDb's configuration file!");
+	throw new ErrorException("Couldn't open nZEDb's configuration file!");
 }
 
 ?>
