@@ -22,17 +22,27 @@
 namespace li3_nzedb\controllers;
 
 use lithium\security\Auth;
+use lithium\storage\Session;
 use li3_flash_message\extensions\storage\FlashMessage;
+use li3_mailer\action\Mailer;
+use li3_mailer\net\mail\Deliver;
+use li3_mailer\net\mail\Message;
+//use li3_mailer\net\mail\Transport;
 use li3_nzedb\models\Users;
 
+/**
+ * The Users controller allows creating, viewing, or modifying users; either by
+ * the user themselves, or by the site's administrator(s).
+ */
 class UsersController extends \lithium\action\Controller
 {
+	protected $_render = ['layout' => 'login'];
 	/**
 	 * Allows admins to create an account manually.
 	 */
 	public function add()
 	{
-		return;
+/*
 		$this->_render['layout'] = 'admin';
 		$user = Users::create($this->request->data);
 
@@ -40,6 +50,7 @@ class UsersController extends \lithium\action\Controller
 			return $this->redirect('Users::index');
 		}
 		return compact('user');
+ */
 	}
 
 	/**
@@ -57,7 +68,14 @@ class UsersController extends \lithium\action\Controller
 			}
 
 			// TODO add mail sending code.
-			FlashMessage::write('Email with your user name, sent to your address.');
+			$body = 'Your username is "' . $user->data('username') . "'";
+			$subject = 'Your username reminder';
+			if ($this->_sendmail(['subject' => $subject, 'body' => $body, 'email' => $user->data('email')])) {
+				$message = 'An email with your user name, has been sent.';
+			} else {
+				$message = 'An error occured while trying to send your email. Please inform the site admin';
+			}
+			FlashMessage::write($message);
 			return $this->redirect('/');
 		}
 	}
@@ -125,7 +143,39 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function register()
 	{
-		$this->_render['layout'] = 'login';
+		$this->set(['request' => $this->request]);
+		//$register = Session::check('register') ? Session::read('register') : null;
+
+		if ($this->request->data) {
+			$register = '_register' . $this->request->id;
+			$this->$register();
+		} else if ($this->request->stage == 1) {
+			Session::delete('register');
+			FlashMessage::write('Deleted old session data!');
+		}
+	}
+
+	protected function _register1()
+	{
+		$user = Users::find('first', [
+			'conditions' => [
+				'username' => [
+					'=' => $this->request->data['username']
+				]
+			]
+		]);
+		if ($user) {
+			FlashMessage::write('That user name is already in use. Please try another.');
+			return;
+		}
+
+		Session::write('register', ['username' => $this->request->data['username']]);
+		FlashMessage::write('That name is available \o/');
+		return $this->redirect('/users/register/2');
+	}
+
+	protected function _register2($username)
+	{
 	}
 
 	/**
@@ -159,6 +209,23 @@ class UsersController extends \lithium\action\Controller
 		} else {
 			$this->set(['test' => false, 'user' => $user, 'used' => '']);
 		}
+	}
+
+	protected function _sendmail($params)
+	{
+		$message = new Message([
+			'baseURL' => 'nZEDb', // replace with site domain.
+			'body' => ['text/plain' => $params['body']],
+			'from' => 'nZEDb', // replace with field from sites table.
+			'subject' => $params['subject'],
+			'to' => $params['email'],
+			]
+		);
+		$message->ensureStandardCompliance();
+
+		return Mailer::deliver('test', ['delivery' => 'default', ]);
+		//$transport = new \li3_mailer\tests\mocks\net\mail\Transport();
+		//return $transport->deliver($message);
 	}
 }
 
