@@ -69,7 +69,10 @@ use lithium\data\Connections;
 // 	'encoding' => 'UTF-8'
 // ));
 
-$config = LITHIUM_APP_PATH . '/libraries/nZEDb/www/config.php';
+$config1 = LITHIUM_APP_PATH . 'config/db-config.php';
+$config2 = LITHIUM_APP_PATH . '/libraries/nZEDb/www/config.php';
+$config = file_exists($config1) ? $config1 : $config2;
+
 if (file_exists($config)) {
 	require_once $config;
 	switch (DB_SYSTEM)
