@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo ""
 echo "Welcome to nZEDb Bootstrap!"
 echo "----------------------------------"
@@ -13,6 +15,19 @@ clear;
 
 //cd nZEDb
 cd li3_nzedb
+
+# You can comment this out if you have lithium installed else where
+# Don't forget to alter the libraries.php file to set the LITHIUM_LIBRARY_PATH
+git submodule add git@github.com/UnionOfRAD/lithium.git libraries/lithium
+
+# If you're working on the code you should uncomment this and the line in
+# <app>/config/libraries.php which enables it.
+#git submodule add https://github.com/UnionOfRAD/li3_docs.git libraries/li3_docs
+
+git submodule add git@github.com:michaelhue/li3_flash_message.git libraries/li3_flash_message
+git submodule add git@github.com/eLod/li3_mailer.git libraries/li3_mailer
+git submodule add git@github.com/UnionOfRAD/li3_quality.git libraries/li3_quality
+git submodule add git@github.com/nZEDb/nZEDb.git libraries/nZEDb
 
 echo ""
 echo "Setting application directory permissions..."
