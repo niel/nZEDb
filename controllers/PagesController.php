@@ -57,18 +57,19 @@ class PagesController extends \lithium\action\Controller
 		$path = func_get_args();
 
 		$config = Connections::config();
+		$user = null;
 		if (!$path || $path === array('home') || !$config) {
 			if (!$config || !$this->_checkSite()) {
 				$this->_render['layout'] = 'setup';
 				$path = array('setup');
 			} else {
+				$user = Auth::check('default', $this->request);
 				$theme = Sites::find('first', array('conditions' => array('setting' => 'style')));
 				$this->_render['layout'] = strtolower($theme->data('value'));
 				$path = array('home');
 			}
 			$options['compiler'] = array('fallback' => true);
 		}
-		$user = Auth::check('default', $this->request);
 		if (!is_array($user)) {
 			$user = null;
 		}

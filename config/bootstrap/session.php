@@ -58,7 +58,7 @@ Auth::config([
 	],
 ]);
 
-
+/*
 Users::applyFilter('save',
 	function($self, $params, $chain)
 	{
@@ -73,4 +73,6 @@ Users::applyFilter('save',
 		return $chain->next($self, $params, $chain);
 	}
 );
+
+ */
 ?>
