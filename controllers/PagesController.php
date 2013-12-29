@@ -74,7 +74,7 @@ class PagesController extends \lithium\action\Controller
 		}
 
 		$log = !empty($user) ? 'out' : 'in';
-		$member['link'] = !empty($user) ? '/profile' : '/register';
+		$member['link'] = !empty($user) ? '/profile' : '/users/register/1';
 		$member['label'] = !empty($user) ? 'Profile' : 'Register';
 
 		$this->set(compact('log', 'member', 'user'));
