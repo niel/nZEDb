@@ -59,10 +59,12 @@ define('LITHIUM_APP_PATH', dirname(dirname(__DIR__)));
  * directory as your application.  If you use the same libraries in multiple applications, you can
  * set this to a shared path on your server.
  */
+//define('LITHIUM_LIBRARY_PATH', '/var/www/libraries');
 if (file_exists(LITHIUM_APP_PATH . '/libraries/lithium')) {
 	define('LITHIUM_LIBRARY_PATH', LITHIUM_APP_PATH . '/libraries');
-} else if (file_exists(LITHIUM_APP_PATH . '../libraries/lithium')) {
-	define('LITHIUM_LIBRARY_PATH', LITHIUM_APP_PATH . '../libraries');
+//} else if (file_exists(realpath(LITHIUM_APP_PATH . '/../libraries')) {
+} else {
+	define('LITHIUM_LIBRARY_PATH', realpath(LITHIUM_APP_PATH . '/../libraries'));
 }
 
 /**
