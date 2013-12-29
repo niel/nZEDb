@@ -102,7 +102,20 @@ if (file_exists($config)) {
 		);
 	}
 } else {
-	throw new ErrorException("Couldn't open nZEDb's configuration file!");
+	//throw new ErrorException("Couldn't open nZEDb's configuration file!");
+/*		Connections::add('default',
+			array(
+				'type'		=> 'database',
+				'adapter'	=> 'MySql',
+				'host'		=> 'localhost',
+				'port'		=> '3306',
+				'login'		=> 'root',
+				'password'	=> 'root_pass',
+				'database'	=> 'nZEDb',
+				'encoding'	=> 'UTF-8'
+			)
+		);
+*/
 }
 
 ?>
