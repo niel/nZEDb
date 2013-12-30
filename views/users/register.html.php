@@ -19,16 +19,24 @@
  * @copyright 2013 nZEDb
  */
 ?>
-<?= $this->flashMessage->show(); ?>
+
 <div class="login">
+			<?= $this->flashMessage->show(); ?>
+
 			<?=$this->form->create($user); ?>
 
 				<?=$this->form->field('username'); ?>
+
 				<?=$this->form->field('firstName'); ?>
+
 				<?=$this->form->field('lastName'); ?>
+
 				<?=$this->form->field('email'); ?>
+
 				<?=$this->form->field('password', array('type' => 'password')); ?>
+
 				<?=$this->form->field('passcopy', array('type' => 'password', 'label' => 'Repeat password')); ?>
+
 				<div><p> </p></div>
 				<?=$this->form->submit('Next'); ?>
 
