@@ -19,8 +19,8 @@
  * @copyright 2013 nZEDb
  */
 ?>
-<?=$this->flashMessage->show(); ?>
 <div class="login">
+<?=$this->flashMessage->show(); ?>
 			<?=$this->form->create(null); ?>
 
 				<?=$this->form->field('username'); ?>

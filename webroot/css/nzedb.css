@@ -18,10 +18,10 @@
  * @copyright 2013 nZEDb
  */
 
-.login { width: 200px; height: 200px; margin: 0 auto; }
+.login { width: 50%; height: 50%; margin: 0 auto; }
 
 .centred {text-align: center; }
 
-.flash-message { background-color: yellow; color: red; font-size: x-large;	padding: 20px;	text-align: center; }
+.flash-message { background-color: salmon; color: black; font-size: x-large;	padding: 20px;	text-align: center; }
 
 div.footer p.right { left: auto; right: 10px; }
