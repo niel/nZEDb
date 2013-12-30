@@ -112,6 +112,16 @@ var_dump($result);
 	}
 
 	/**
+	 * Action to accept confirmation code sent out in email during registration.
+	 *
+	 * @param type $param code from email link
+	 */
+	public function confirm($param)
+	{
+		$this->_render['template'] = 'confirm';  //Just to make it complain if not finished before testing.
+	}
+
+	/**
 	 * Displays a list of all usernames.
 	 */
 	public function index()
@@ -193,51 +203,6 @@ var_dump($result);
 			FlashMessage::write('Please correct the errors below.');
 		}
 		$this->set(compact('user'));
-	}
-
-	/**
-	 * Handles selection and verification of the username.
-	 *
-	 * @return Response Redirection on success.
-	 */
-	protected function _register1()
-	{
-		$user = Users::find('first', [
-			'conditions' => [
-				'username' => ['=' => $this->request->data['username']]
-			]
-		]);
-		if ($user) {
-			FlashMessage::write('That user name is already in use. Please try another.');
-			return;
-		}
-
-		Session::write('register', ['username' => $this->request->data['username']]);
-		FlashMessage::write('That name is available \o/');
-		return $this->redirect('/users/register/2');
-	}
-
-	/**
-	 * Handles setting and verification of username and password.
-	 *
-	 * @return Response Redirection on success.
-	 */
-	protected function _register2()
-	{
-		$register = Session::check('register') ? Session::read('register') : null;
-		if (!$register || !isset($register['username'])) {
-			FlashMessage::write('You must first choose a user name.');
-			return  $this->redirect('/users/register/1');
-		}
-
-		$this->request->data['username'] = ['username'];
-		$user = Users::create($this->request->data);
-
-
-		if($user->save()) {
-			$this->redirect('/');
-		}
-		FlashMessage::write('Please correct the errors below.');
 	}
 
 	/**
