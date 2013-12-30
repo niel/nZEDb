@@ -21,10 +21,8 @@
 
 namespace li3_nzedb\controllers;
 
-use lithium\core\Environment;
 use lithium\security\Auth;
 use lithium\util\Validator;
-use lithium\storage\Session;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_mailer\action\Mailer;
 //use li3_mailer\net\mail\Deliver;
@@ -53,17 +51,14 @@ class UsersController extends \lithium\action\Controller
 		Validator::add('usernameTaken',
 			function($value)
 			{
-				$result = Users::findByUsername($value);
-				return !count($result) > 0;
+				return !(count(Users::findByUsername($value)) > 0);
 			}
 		);
 
 		Validator::add('matchesPassword',
 			function($value) use (&$self)
 			{
-				$result = $self->request->get('data:password');
-var_dump($result);
-				return $value == $result;
+				return $value == $self->request->get('data:password');
 			}
 		);
 	}
@@ -193,7 +188,6 @@ var_dump($result);
 			$user->set(['role' => $role]);
 
 			$result = $user->save();
-			var_dump($result);
 			if($result) {
 				if ($confirm) {
 					FlashMessage::write('Your account has been set up. Please check your email for a confimation message.');
