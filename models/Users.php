@@ -23,6 +23,30 @@ namespace li3_nzedb\models;
 
 class Users extends \lithium\data\Model
 {
+	const ROLE_ADMIN		= 2;
+	const STATUS_BANNED		= -2;
+	const STATUS_DISABLED	= 3;
+	const STATUS_GUEST		= 0;
+	const STATUS_REGISTERED	= 1;
+
+	public $validates = [
+		'email' => [
+			['notEmpty', 'message' => 'email is empty'],
+			['email', 'message' => 'email is not valid'],
+			['emailInUse', 'message' => 'This address is already in use.']
+		],
+		'password' => [
+			['notEmpty', 'message' => 'Please supply a password.', 'required' => true]
+		],
+		'passcopy' => [
+			['matchesPassword', 'message' => 'Passwords did not match!']
+		],
+		'username' => [
+			['notEmpty', 'message' => 'Please supply a username.', 'required' => true],
+			['usernameTaken', 'message' => 'Sorry that name is already in use.']
+		],
+	];
+
 	/**
 	 * Test if the user has the admin role.
 	 *
@@ -32,7 +56,7 @@ class Users extends \lithium\data\Model
 	static public function isAdmin(array $user = null)
 	{
 		if (!empty($user)) {
-			return ((integer) $user['role'] === 2);
+			return ((integer) $user['role'] === ROLE_ADMIN);
 		}
 		return $user;
 	}
@@ -45,7 +69,7 @@ class Users extends \lithium\data\Model
 	static public function isDisabled(array $user)
 	{
 		if (!empty($user)) {
-			return ((integer) $user['role'] === 3);
+			return ((integer) $user['role'] === STATUS_DISABLED);
 		}
 		return $user;
 	}
