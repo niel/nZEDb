@@ -42,17 +42,21 @@ use \li3_nzedb\models\Users;
 
 		<div class="masthead">
 			<ul class="nav nav-pills pull-right">
-				<?php if (Users::isAdmin($user)): ?>
+				<?php if (isset($user) && is_array($user) && Users::isAdmin($user)): ?>
 				<li>
 					<?php  echo $this->html->link('Admin', '/admin'); ?>
 				</li>
 				<?php endif; ?>
+				<?php if (isset($member)): ?>
 				<li>
 					<?php echo $this->html->link($member['label'], $member['link']); ?>
 				</li>
+				<?php endif; ?>
+				<?php if (isset($log)): ?>
 				<li>
 					<?php echo $this->html->link("Log" . $log, "/log" . $log); ?>
 				</li>
+				<?php endif; ?>
 			</ul>
 			<a  class="logolink" title="nZEDb Logo" href="/"><?= $this->html->image('logo.png', array('class' => 'logoimg', 'alt' => "nZEDb Logo"))?></a>
 		</div>

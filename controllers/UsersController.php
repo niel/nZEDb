@@ -21,13 +21,14 @@
 
 namespace li3_nzedb\controllers;
 
+use lithium\core\Environment;
 use lithium\security\Auth;
+use lithium\util\Validator;
 use lithium\storage\Session;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_mailer\action\Mailer;
-use li3_mailer\net\mail\Deliver;
+//use li3_mailer\net\mail\Deliver;
 use li3_mailer\net\mail\Message;
-//use li3_mailer\net\mail\Transport;
 use li3_nzedb\models\Users;
 
 /**
@@ -36,7 +37,37 @@ use li3_nzedb\models\Users;
  */
 class UsersController extends \lithium\action\Controller
 {
-	protected $_render = ['layout' => 'login'];
+	public function _init()
+	{
+		parent::_init();
+		$self = $this;
+
+		Validator::add('emailInUse',
+			function($value)
+			{
+				$result = Users::find('first', ['conditions' => ['email' => ['=' => $value]]]);
+				return !count($result) > 0;
+			}
+		);
+
+		Validator::add('usernameTaken',
+			function($value)
+			{
+				$result = Users::findByUsername($value);
+				return !count($result) > 0;
+			}
+		);
+
+		Validator::add('matchesPassword',
+			function($value) use (&$self)
+			{
+				$result = $self->request->get('data:password');
+var_dump($result);
+				return $value == $result;
+			}
+		);
+	}
+
 	/**
 	 * Allows admins to create an account manually.
 	 */
@@ -101,7 +132,8 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function login()
 	{
-		$this->_render['layout'] = 'login';
+		//$this->_render['layout'] = 'login';
+		$this->set(['member' => ['label' => 'Register', 'link' => '/users/register']]);
 
 		$request = $this->request;
 		if ($request->data) {
@@ -138,30 +170,41 @@ class UsersController extends \lithium\action\Controller
 	/**
 	 * Allow a new user to register an account.
 	 *
-	 * TODO create page and logic for proper singup. Once confirmation (if
-	 * enabled) is done redirect to profile.
+	 * TODO create page and logic for proper signup. Once confirmation (if
+	 * enabled) is done, redirect to profile.
 	 */
 	public function register()
 	{
-		$this->set(['request' => $this->request]);
-		//$register = Session::check('register') ? Session::read('register') : null;
-
+		$this->set(['log' => 'in']);
+		$confirm = true;  // TODO This needs to be dynamically set depending upon the site settings.
+		$user = Users::create($this->request->data);
 		if ($this->request->data) {
-			$register = '_register' . $this->request->id;
-			$this->$register();
-		} else if ($this->request->stage == 1) {
-			Session::delete('register');
-			FlashMessage::write('Deleted old session data!');
+			$role = $confirm ? Users::STATUS_DISABLED : Users::STATUS_REGISTERED;
+			$user->set(['role' => $role]);
+
+			$result = $user->save();
+			var_dump($result);
+			if($result) {
+				if ($confirm) {
+					FlashMessage::write('Your account has been set up. Please check your email for a confimation message.');
+				}
+				$this->redirect('/');
+			}
+			FlashMessage::write('Please correct the errors below.');
 		}
+		$this->set(compact('user'));
 	}
 
+	/**
+	 * Handles selection and verification of the username.
+	 *
+	 * @return Response Redirection on success.
+	 */
 	protected function _register1()
 	{
 		$user = Users::find('first', [
 			'conditions' => [
-				'username' => [
-					'=' => $this->request->data['username']
-				]
+				'username' => ['=' => $this->request->data['username']]
 			]
 		]);
 		if ($user) {
@@ -174,8 +217,27 @@ class UsersController extends \lithium\action\Controller
 		return $this->redirect('/users/register/2');
 	}
 
-	protected function _register2($username)
+	/**
+	 * Handles setting and verification of username and password.
+	 *
+	 * @return Response Redirection on success.
+	 */
+	protected function _register2()
 	{
+		$register = Session::check('register') ? Session::read('register') : null;
+		if (!$register || !isset($register['username'])) {
+			FlashMessage::write('You must first choose a user name.');
+			return  $this->redirect('/users/register/1');
+		}
+
+		$this->request->data['username'] = ['username'];
+		$user = Users::create($this->request->data);
+
+
+		if($user->save()) {
+			$this->redirect('/');
+		}
+		FlashMessage::write('Please correct the errors below.');
 	}
 
 	/**
