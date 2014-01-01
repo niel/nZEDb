@@ -247,9 +247,10 @@ class UsersController extends \lithium\action\Controller
 	}
 
 	/**
+	 * Sends message to a user specified in the params
 	 *
-	 * @param array $params
-	 * @return type
+	 * @param array $params Array of body, email, and subject for the message.
+	 * @return boolean True on success.
 	 */
 	protected function _sendmail(array $params)
 	{
