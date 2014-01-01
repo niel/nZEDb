@@ -25,8 +25,12 @@ use lithium\security\Auth;
 use lithium\util\Validator;
 use li3_flash_message\extensions\storage\FlashMessage;
 use li3_mailer\action\Mailer;
-//use li3_mailer\net\mail\Deliver;
+use \li3_mailer\net\mail\transport\adapter\Debug;
+//use \li3_mailer\net\mail\transport\adapter\Mailgun;
+use \li3_mailer\net\mail\transport\adapter\Simple;
+//use \li3_mailer\net\mail\transport\adapter\Swift;
 use li3_mailer\net\mail\Message;
+use li3_nzedb\models\Sites;
 use li3_nzedb\models\Users;
 
 /**
@@ -85,7 +89,7 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function amnesia()
 	{
-		$this->_render['layout'] = 'login';
+		//$this->_render['layout'] = 'login';
 		if ($this->request->data) {
 			$user = Users::find('first', ['conditions' => ['email' => ['=' => $this->request->data['email']]]]);
 			if (!$user) {
@@ -94,7 +98,7 @@ class UsersController extends \lithium\action\Controller
 			}
 
 			// TODO add mail sending code.
-			$body = 'Your username is "' . $user->data('username') . "'";
+			$body = "Your username is '" . $user->data('username') . "'";
 			$subject = 'Your username reminder';
 			if ($this->_sendmail(['subject' => $subject, 'body' => $body, 'email' => $user->data('email')])) {
 				$message = 'An email with your user name, has been sent.';
@@ -140,6 +144,8 @@ class UsersController extends \lithium\action\Controller
 		//$this->_render['layout'] = 'login';
 		$this->set(['member' => ['label' => 'Register', 'link' => '/users/register']]);
 
+		$user = null;
+		$this->set(['user' => $user]);
 		$request = $this->request;
 		if ($request->data) {
 			$user = Auth::check('default', $this->request);
@@ -180,18 +186,21 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function register()
 	{
+		$status = Sites::get('registerstatus');
+		if ($status != Sites::REGISTER_STATUS_OPEN) {
+			FlashMessage::write('Registration is currently closed, please check back later.');
+			$this->redirect('/');
+		}
+
 		$this->set(['log' => 'in']);
-		$confirm = true;  // TODO This needs to be dynamically set depending upon the site settings.
 		$user = Users::create($this->request->data);
 		if ($this->request->data) {
-			$role = $confirm ? Users::STATUS_DISABLED : Users::STATUS_REGISTERED;
-			$user->set(['role' => $role]);
+			$user->set(['role' => Users::STATUS_DISABLED]);
 
 			$result = $user->save();
 			if($result) {
-				if ($confirm) {
-					FlashMessage::write('Your account has been set up. Please check your email for a confimation message.');
-				}
+				// TODO create/send mail with confirmation code.
+				FlashMessage::write('Your account has been set up. Please check your email for a confirmation link.');
 				$this->redirect('/');
 			}
 			FlashMessage::write('Please correct the errors below.');
@@ -232,21 +241,34 @@ class UsersController extends \lithium\action\Controller
 		}
 	}
 
-	protected function _sendmail($params)
+	protected function _createMail($params)
 	{
-		$message = new Message([
-			'baseURL' => 'nZEDb', // replace with site domain.
+
+	}
+
+	/**
+	 *
+	 * @param array $params
+	 * @return type
+	 */
+	protected function _sendmail(array $params)
+	{
+		if (!is_array($params['body'])) {
+			$params['body'] = [$params['body']];
+		}
+		$msg = Mailer::message([
+			'type' => 'text',
+			'baseURL' => 'nZEDb',												// replace with site domain.
 			'body' => ['text/plain' => $params['body']],
-			'from' => 'nZEDb', // replace with field from sites table.
+			'from' => 'nZEDb',													// replace with field from sites table.
 			'subject' => $params['subject'],
 			'to' => $params['email'],
-			]
-		);
-		$message->ensureStandardCompliance();
+		]);
+		$msg->ensureStandardCompliance();
 
-		return Mailer::deliver('test', ['delivery' => 'default', ]);
-		//$transport = new \li3_mailer\tests\mocks\net\mail\Transport();
-		//return $transport->deliver($message);
+		$transport = new Debug();
+
+		return $transport->deliver($msg);
 	}
 }
 
