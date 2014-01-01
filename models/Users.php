@@ -56,7 +56,7 @@ class Users extends \lithium\data\Model
 	static public function isAdmin(array $user = null)
 	{
 		if (!empty($user)) {
-			return ((integer) $user['role'] === ROLE_ADMIN);
+			return ((integer) $user['role'] === self::ROLE_ADMIN);
 		}
 		return $user;
 	}

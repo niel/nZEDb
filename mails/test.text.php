@@ -19,3 +19,4 @@
  * @copyright 2013 nZEDb
  */
 ?>
+<?php echo $this->message()->body; ?>

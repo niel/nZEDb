@@ -21,7 +21,7 @@
 ?>
 <div class="login">
 <?=$this->flashMessage->show(); ?>
-			<?=$this->form->create(null); ?>
+			<?=$this->form->create($user); ?>
 
 				<?=$this->form->field('username'); ?>
 

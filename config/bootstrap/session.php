@@ -58,7 +58,7 @@ Auth::config([
 	],
 ]);
 
-/*
+
 Users::applyFilter('save',
 	function($self, $params, $chain)
 	{
@@ -70,9 +70,10 @@ Users::applyFilter('save',
 		if (!$params['entity']->exists()) {
 			$params['entity']->password = Password::hash($params['entity']->password);
 		}
+
 		return $chain->next($self, $params, $chain);
 	}
 );
 
- */
+
 ?>

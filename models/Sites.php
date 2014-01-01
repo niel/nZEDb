@@ -23,6 +23,11 @@ namespace li3_nzedb\models;
 
 class Sites extends \lithium\data\Model
 {
+	const REGISTER_STATUS_API_ONLY = 3;
+	const REGISTER_STATUS_CLOSED = 2;
+	const REGISTER_STATUS_INVITE = 1;
+	const REGISTER_STATUS_OPEN = 0;
+
 	protected $_meta = array('source' => 'site');
 
 	static public function get($setting)
