@@ -30,7 +30,7 @@ use \li3_mailer\net\mail\transport\adapter\Debug;
 use \li3_mailer\net\mail\transport\adapter\Simple;
 //use \li3_mailer\net\mail\transport\adapter\Swift;
 use li3_mailer\net\mail\Message;
-use li3_nzedb\models\Sites;
+use li3_nzedb\models\Settings;
 use li3_nzedb\models\Users;
 
 /**
@@ -89,7 +89,6 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function amnesia()
 	{
-		//$this->_render['layout'] = 'login';
 		if ($this->request->data) {
 			$user = Users::find('first', ['conditions' => ['email' => ['=' => $this->request->data['email']]]]);
 			if (!$user) {
@@ -98,14 +97,15 @@ class UsersController extends \lithium\action\Controller
 			}
 
 			// TODO add mail sending code.
-			$body = "Your username is '" . $user->data('username') . "'";
-			$subject = 'Your username reminder';
-			if ($this->_sendmail(['subject' => $subject, 'body' => $body, 'email' => $user->data('email')])) {
-				$message = 'An email with your user name, has been sent.';
+			$result = $this->_sendForgottenUsernameMailer($user);
+
+			if ($result) {
+				FlashMessage::write("An email has been sent to the given address.");
 			} else {
-				$message = 'An error occured while trying to send your email. Please inform the site admin';
+				FlashMessage::write("An error occured while trying to send your reminder!<br/> Please inform the site admin.");
 			}
-			FlashMessage::write($message);
+			$this->set(['user' => $user]);
+			$this->set(['debug' => $result]);
 			return $this->redirect('/');
 		}
 	}
@@ -186,8 +186,8 @@ class UsersController extends \lithium\action\Controller
 	 */
 	public function register()
 	{
-		$status = Sites::get('registerstatus');
-		if ($status != Sites::REGISTER_STATUS_OPEN) {
+		$status = Settings::get('registerstatus');
+		if ($status != Settings::REGISTER_STATUS_OPEN) {
 			FlashMessage::write('Registration is currently closed, please check back later.');
 			$this->redirect('/');
 		}
@@ -241,11 +241,6 @@ class UsersController extends \lithium\action\Controller
 		}
 	}
 
-	protected function _createMail($params)
-	{
-
-	}
-
 	/**
 	 * Sends message to a user specified in the params
 	 *
@@ -270,6 +265,44 @@ class UsersController extends \lithium\action\Controller
 		$transport = new Debug();
 
 		return $transport->deliver($msg);
+	}
+
+	protected function _sendForgottenUsernameMailer($user, array $params = array())
+	{
+		$defaults = ['delivery' => 'default'];
+		$params += $defaults;
+		return Mailer::deliver('amnesia', [
+				'data'		=> ['resource' => $user],
+				'delivery'	=> $params['delivery'],
+				'from'		=> Settings::get('email'),
+				'layout'	=> false,
+				'subject'	=> 'Your user name @ *add domain name here* reminder',
+				'to'		=> $user->email,
+				'types'		=> ['text'],
+			]);
+	}
+
+}
+
+
+
+class MailerSimple extends Mailer
+{
+	/**
+	 * @var object Message object;
+	 */
+	protected $_message;
+
+	public function __construct(array $params = array())
+	{
+		$defaults = [
+			[
+				'baseURL'	=> Settings::get('domain'),
+				'from'		=> Settings::get('domain'),
+				'type'		=> 'text',
+			]
+		];
+		$this->_messages += $params + $defaults;
 	}
 }
 

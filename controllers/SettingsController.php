@@ -22,7 +22,7 @@
 namespace li3_nzedb\controllers;
 
 use lithium\security\Auth;
-use \li3_nzedb\models\Sites;
+use \li3_nzedb\models\Settings;
 use \li3_nzedb\models\Users;
 
 class SitesController extends \lithium\action\Controller
@@ -35,7 +35,7 @@ class SitesController extends \lithium\action\Controller
 		if (!Users::isAdmin($user)) {
 			return $this->redirect('/');
 		} else {
-			$settings = Sites::asArray();
+			$settings = Settings::asArray();
 			return compact('settings');
 		}
 	}

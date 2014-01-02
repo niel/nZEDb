@@ -23,7 +23,7 @@ namespace li3_nzedb\controllers;
 
 use lithium\data\Connections;
 use lithium\security\Auth;
-use li3_nzedb\models\Sites;
+use li3_nzedb\models\Settings;
 
 /**
  * This controller is used for serving static pages by name, which are located in the `/views/pages`
@@ -64,7 +64,7 @@ class PagesController extends \lithium\action\Controller
 				$path = array('setup');
 			} else {
 				$user = Auth::check('default', $this->request);
-				$theme = Sites::find('first', array('conditions' => array('setting' => 'style')));
+				$theme = Settings::find('first', array('conditions' => array('setting' => 'style')));
 				$this->_render['layout'] = strtolower($theme->data('value'));
 				$path = array('home');
 			}
@@ -86,7 +86,7 @@ class PagesController extends \lithium\action\Controller
 	protected function _checkSite()
 	{
 		try {
-			$result = Sites::first(array('conditions' => array('id' => '1')));
+			$result = Settings::first(array('conditions' => array('id' => '1')));
 		} catch (Exception $ex) {
 			return false;
 		}

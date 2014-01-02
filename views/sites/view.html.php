@@ -20,7 +20,7 @@
  * @copyright 2013 nZEDb
  */
 
-use \li3_nzedb\models\Sites;
+use \li3_nzedb\models\Settings;
 ?>
 <div class="none">
 	<table class="data">
