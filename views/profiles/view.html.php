@@ -20,7 +20,7 @@
  * @copyright 2013 nZEDb
  */
 
-use \li3_nzedb\models\Sites;
+use \li3_nzedb\models\Settings;
 ?>
 <div class="none">
 	<table class="data">
@@ -56,7 +56,7 @@ use \li3_nzedb\models\Sites;
 			<th>Grabs:</th>
 			<td>{$user.grabs}</td>
 		</tr>
-<?php if ($user['role'] == 2 && Sites::get('registerstatus') == 1): ?>
+<?php if ($user['role'] == 2 && Settings::get('registerstatus') == 1): ?>
 		<tr>
 			<th title="Not public">Invites:</th>
 			<td>{$user.invites}
@@ -95,7 +95,7 @@ use \li3_nzedb\models\Sites;
 			<th title="Not public">Excluded Categories:</th>
 			<td>{$exccats|replace:",":"<br/>"}</td>
 		</tr>
-<?php if (Sites::get('sabintegrationtype') == 2 && $user['role'] == 2): ?>
+<?php if (Settings::get('sabintegrationtype') == 2 && $user['role'] == 2): ?>
 		<tr>
 			<th>SABnzbd Integration:</th>
 			<td>
