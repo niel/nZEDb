@@ -4,7 +4,7 @@ set -e
 
 echo ""
 echo "Welcome to nZEDb Bootstrap!"
-echo "----------------------------------"
+echo "---------------------------"
 echo ""
 echo "Starting the installation process..."
 echo ""
@@ -15,6 +15,8 @@ clear;
 
 //cd nZEDb
 cd li3_nzedb
+
+git branch -t dev
 
 # You can comment this out if you have lithium installed else where
 # Don't forget to alter the libraries.php file to set the LITHIUM_LIBRARY_PATH
@@ -48,5 +50,10 @@ echo ""
 
 echo ""
 echo "Installation complete."
-echo "You now need to configure the http and database servers.
+echo "You now need to configure the http and database servers."
+echo "For Debian based servers, point your http server at:"
+echo "  /var/www/li3_nzedb/webroot"
+echo "or wherever you cloned, then open the site in your browser."
+echo "You should see either a list of problems to fix, or a"
+echo "summary of your site's environment."
 echo ""
