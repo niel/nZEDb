@@ -9,27 +9,33 @@ echo ""
 echo "Starting the installation process..."
 echo ""
 
+
+BASE="li3_nzedb"
+LIBS="libraries"
+
+
 //exec git clone git://github.com/nZEDb/nZEDb.git
 exec git clone git@77.99.35.102:li3_nzedb.git
 clear;
 
-//cd nZEDb
-cd li3_nzedb
 
-git branch -t dev
+if [ ! -e ${LIBS} ] || [ ! -d ${LIBS} ]
+then
+	mkdir ${LIBS}
+fi
 
-# You can comment this out if you have lithium installed else where
-# Don't forget to alter the libraries.php file to set the LITHIUM_LIBRARY_PATH
-git submodule add git@github.com/UnionOfRAD/lithium.git libraries/lithium
+cd ${LIBS}
 
-# If you're working on the code you should uncomment this and the line in
-# <app>/config/libraries.php which enables it.
-#git submodule add https://github.com/UnionOfRAD/li3_docs.git libraries/li3_docs
+git clone git@github.com/UnionOfRAD/li3_docs.git
+git clone git@github.com:michaelhue/li3_flash_message.git
+git clone git@github.com/eLod/li3_mailer.git
+git clone git@github.com/UnionOfRAD/li3_quality.git
+git clone git@github.com/UnionOfRAD/lithium.git libraries/lithium
+git clone git@github.com/nZEDb/nZEDb.git
 
-git submodule add git@github.com:michaelhue/li3_flash_message.git libraries/li3_flash_message
-git submodule add git@github.com/eLod/li3_mailer.git libraries/li3_mailer
-git submodule add git@github.com/UnionOfRAD/li3_quality.git libraries/li3_quality
-git submodule add git@github.com/nZEDb/nZEDb.git libraries/nZEDb
+
+cd ../${BASE}
+
 
 echo ""
 echo "Setting application directory permissions..."
@@ -37,14 +43,9 @@ chmod -R 777 resources
 echo ""
 
 echo ""
-echo "Getting all necessary submodules..."
-git submodule update --init --recursive
-echo ""
-
-echo ""
 echo "Creating a symlink to li3 for you..."
-chmod +x libraries/lithium/console/li3
-ln -s libraries/lithium/console/li3 nzedb
+chmod +x ../libraries/lithium/console/li3
+ln -s ../libraries/lithium/console/li3 nzedb
 alias nzedb='./nzedb'
 echo ""
 
@@ -52,7 +53,7 @@ echo ""
 echo "Installation complete."
 echo "You now need to configure the http and database servers."
 echo "For Debian based servers, point your http server at:"
-echo "  /var/www/li3_nzedb/webroot"
+echo "  /var/www/${BASE}/webroot"
 echo "or wherever you cloned, then open the site in your browser."
 echo "You should see either a list of problems to fix, or a"
 echo "summary of your site's environment."
