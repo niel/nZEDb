@@ -26,12 +26,12 @@ fi
 
 cd ${LIBS}
 
-git clone git@github.com/UnionOfRAD/li3_docs.git
+git clone git@github.com:UnionOfRAD/li3_docs.git
 git clone git@github.com:michaelhue/li3_flash_message.git
-git clone git@github.com/eLod/li3_mailer.git
-git clone git@github.com/UnionOfRAD/li3_quality.git
-git clone git@github.com/UnionOfRAD/lithium.git libraries/lithium
-git clone git@github.com/nZEDb/nZEDb.git
+git clone git@github.com:eLod/li3_mailer.git
+git clone git@github.com:UnionOfRAD/li3_quality.git
+git clone git@github.com:UnionOfRAD/lithium.git
+git clone git@github.com:nZEDb/nZEDb.git
 
 
 cd ../${BASE}
