@@ -6,7 +6,7 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-namespace li3_nzedb\extensions\test\rules;
+namespace app\extensions\test\rules;
 
 use lithium\util\String;
 

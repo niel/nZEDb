@@ -19,11 +19,11 @@
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\controllers;
+namespace app\controllers;
 
 use lithium\security\Auth;
-use \li3_nzedb\models\Settings;
-use \li3_nzedb\models\Users;
+use \app\models\Settings;
+use \app\models\Users;
 
 class SitesController extends \lithium\action\Controller
 {

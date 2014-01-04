@@ -20,7 +20,7 @@
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\controllers;
+namespace app\controllers;
 
 use lithium\security\Auth;
 

@@ -64,7 +64,7 @@ if (file_exists(LITHIUM_APP_PATH . '/libraries/lithium')) {
 	define('LITHIUM_LIBRARY_PATH', LITHIUM_APP_PATH . '/libraries');
 //} else if (file_exists(realpath(LITHIUM_APP_PATH . '/../libraries')) {
 } else {
-	define('LITHIUM_LIBRARY_PATH', realpath(LITHIUM_APP_PATH . '/../libraries'));
+	define('LITHIUM_LIBRARY_PATH', realpath(LITHIUM_APP_PATH . '/../../libraries'));
 }
 
 /**
@@ -122,7 +122,7 @@ Libraries::add('lithium');
  * your main application, but generally you should not need to change any settings.
  */
 
-Libraries::add('li3_nzedb', array('default' => true));
+Libraries::add('app', array('default' => true));
 
 /**
  * Add some plugins:

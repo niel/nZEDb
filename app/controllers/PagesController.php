@@ -19,11 +19,11 @@
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\controllers;
+namespace app\controllers;
 
 use lithium\data\Connections;
 use lithium\security\Auth;
-use li3_nzedb\models\Settings;
+use app\models\Settings;
 
 /**
  * This controller is used for serving static pages by name, which are located in the `/views/pages`
