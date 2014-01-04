@@ -19,7 +19,7 @@
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\models;
+namespace app\models;
 
 class Settings extends \lithium\data\Model
 {

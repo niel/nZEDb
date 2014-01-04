@@ -18,7 +18,7 @@
  * @author Niel Archer
  * @copyright 2013 nZEDb
  */
-use \li3_nzedb\models\Users;
+use \app\models\Users;
 
 ?>
 <!doctype html>

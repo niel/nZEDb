@@ -19,7 +19,7 @@
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\models;
+namespace app\models;
 
 class Users extends \lithium\data\Model
 {
@@ -69,7 +69,7 @@ class Users extends \lithium\data\Model
 	static public function isDisabled(array $user)
 	{
 		if (!empty($user)) {
-			return ((integer) $user['role'] === STATUS_DISABLED);
+			return ((integer) $user['role'] === self::STATUS_DISABLED);
 		}
 		return $user;
 	}

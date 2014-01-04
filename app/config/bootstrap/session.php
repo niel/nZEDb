@@ -48,7 +48,7 @@ use lithium\security\Auth;
 // 	)
 // ));
 
-use li3_nzedb\models\Users;
+use app\models\Users;
 use lithium\security\Password;
 
 Auth::config([

@@ -19,7 +19,7 @@
  * @copyright 2013 nZEDb
  */
 
-namespace li3_nzedb\controllers;
+namespace app\controllers;
 
 use lithium\security\Auth;
 use lithium\util\Validator;
@@ -30,8 +30,8 @@ use \li3_mailer\net\mail\transport\adapter\Debug;
 use \li3_mailer\net\mail\transport\adapter\Simple;
 //use \li3_mailer\net\mail\transport\adapter\Swift;
 use li3_mailer\net\mail\Message;
-use li3_nzedb\models\Settings;
-use li3_nzedb\models\Users;
+use app\models\Settings;
+use app\models\Users;
 
 /**
  * The Users controller allows creating, viewing, or modifying users; either by
