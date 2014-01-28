@@ -47,6 +47,13 @@ class Users extends \lithium\data\Model
 		],
 	];
 
+	public function __construct()
+	{
+		if (! \lithium\data\Connections::get('default')) {
+			$this->_schema['connection'] = 'test';
+		}
+	}
+
 	/**
 	 * Test if the user has the admin role.
 	 *
