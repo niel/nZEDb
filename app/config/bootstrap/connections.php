@@ -69,8 +69,8 @@ use lithium\data\Connections;
 // 	'encoding' => 'UTF-8'
 // ));
 
-$config1 = LITHIUM_APP_PATH . 'config/db-config.php';
-$config2 = LITHIUM_APP_PATH . '/libraries/nZEDb/www/config.php';
+$config1 = LITHIUM_APP_PATH . '/config/db-config.php';
+$config2 = LITHIUM_APP_PATH . '/../../libraries/nZEDb/www/config.php';
 $config = file_exists($config1) ? $config1 : $config2;
 
 if (file_exists($config)) {
@@ -103,10 +103,10 @@ if (file_exists($config)) {
 	}
 } else {
 	//throw new ErrorException("Couldn't open nZEDb's configuration file!");
-/*		Connections::add('default',
+		Connections::add('default',
 			array(
 				'type'		=> 'database',
-				'adapter'	=> 'MySql',
+				'adapter'	=> 'Mock',
 				'host'		=> 'localhost',
 				'port'		=> '3306',
 				'login'		=> 'root',
@@ -115,7 +115,7 @@ if (file_exists($config)) {
 				'encoding'	=> 'UTF-8'
 			)
 		);
-*/
+
 }
 
 ?>

@@ -59,13 +59,7 @@ define('LITHIUM_APP_PATH', dirname(dirname(__DIR__)));
  * directory as your application.  If you use the same libraries in multiple applications, you can
  * set this to a shared path on your server.
  */
-//define('LITHIUM_LIBRARY_PATH', '/var/www/libraries');
-if (file_exists(LITHIUM_APP_PATH . '/libraries/lithium')) {
-	define('LITHIUM_LIBRARY_PATH', LITHIUM_APP_PATH . '/libraries');
-//} else if (file_exists(realpath(LITHIUM_APP_PATH . '/../libraries')) {
-} else {
-	define('LITHIUM_LIBRARY_PATH', realpath(LITHIUM_APP_PATH . '/../../libraries'));
-}
+define('LITHIUM_LIBRARY_PATH', realpath(LITHIUM_APP_PATH . '/../../libraries'));
 
 /**
  * Locate and load Lithium core library files.  Throws a fatal error if the core can't be found.
@@ -121,13 +115,14 @@ Libraries::add('lithium');
  * Add the application.  You can pass a `'path'` key here if this bootstrap file is outside of
  * your main application, but generally you should not need to change any settings.
  */
-
 Libraries::add('app', array('default' => true));
 
 /**
  * Add some plugins:
  */
-//Libraries::add('li3_docs');
+if (file_exists(LITHIUM_LIBRARY_PATH . '/li3_docs')) {
+	Libraries::add('li3_docs');
+}
 
 Libraries::add('li3_flash_message');
 
@@ -146,9 +141,25 @@ Libraries::add('nZEDb',
 			{
 				return $options['path'] . '/www/lib/' . $class;
 			},*/
-		'bootstrap' => true,
+		'bootstrap' => 'www/automated.config.php',
 		'defer' => true,
 		'default' => false
 	)
 );
+
+/*
+$nZEDb = Libraries::get('nZEDb');
+Libraries::add('li3_smarty',
+	array(
+		'compile_dir' => $nZEDb['path'] . '/smarty/template_c/',
+		 //'cache_dir' =>  $nZEDb['path'] . '/smarty/templates/',
+		 'template_dir' => array(
+			 $nZEDb['path'] . '/www/themes/'
+		 ),
+		 'plugin_dir' => array(
+			 $nZEDb['path'] . '/lib'
+		 )
+	)
+	);
+ */
 ?>
