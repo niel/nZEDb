@@ -16,8 +16,8 @@
  * not, see:
  *
  * @link <http://www.gnu.org/licenses/>.
- * @author Niel Archer <niel.archer@gmail.com>
- * @copyright 2013 nZEDb
+ * @author niel
+ * @copyright 2013-2014 nZEDb
  */
 
 use \app\models\Settings;
