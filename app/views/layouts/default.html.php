@@ -47,6 +47,11 @@ use \app\models\Users;
 					<?php  echo $this->html->link('Admin', '/admin'); ?>
 				</li>
 				<?php endif; ?>
+				<?php if (isset($user) && is_array($user) && \lithium\core\Libraries::get('li3_docs')): ?>
+				<li>
+					<?php  echo $this->html->link('Docs', '/docs'); ?>
+				</li>
+				<?php endif; ?>
 				<?php if (isset($member)): ?>
 				<li>
 					<?php echo $this->html->link($member['label'], $member['link']); ?>
@@ -70,7 +75,7 @@ use \app\models\Users;
 		<hr>
 
 		<div class="footer">
-			<p class="pull-right">&copy; nZEDb 2013</p>
+			<p class="pull-right">&copy; nZEDb 2013 &ndash; <?= date('Y') ?></p>
 		</div>
 
 	</div>
