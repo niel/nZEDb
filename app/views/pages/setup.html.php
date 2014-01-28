@@ -117,22 +117,31 @@ $checks = array(
 			<code>short_open_tag = Off</code> in your <code>php.ini</code>."
 		);
 	},
+	'jsonExtension' => function() {
+		if (!function_exists('json_decode')) {
+			return $notify(
+				'error',
+				'The JSON extension is not available',
+				'On some distributions it must be installed separately to PHP (e.g. sudo apt-get install php5-json)'
+			);
+		}
+	},
 	'database' => function() use ($notify) {
-		if ($config = Connections::config()) {
+		$config = Connections::config();
+		if ($config && $config['default']['adapter'] != 'Mock') {
 			return $notify('success', 'Database connection(s) configured');
 		}
 		return $notify(
-			'warning',
+			'error',
 			'No database connection defined',
 			"To create a database connection:
-			<ol>
-				<li>Edit the file <code>config/bootstrap.php</code>.</li>
-				<li>
-					Uncomment the line having
-					<code>require __DIR__ . '/bootstrap/connections.php';</code>.
-				</li>
-				<li>Edit the file <code>config/bootstrap/connections.php</code>.</li>
-			</ol>"
+			<ul>
+				<li>Edit the file <code>config/bootstrap/connections.php</code> and add a connection configuration.</li>
+				<li> - OR -</li>
+				<li>Create <code>config/db-config.php</code> and add/copy the constants that nZEDb would use.</li>
+				<li> - OR -</li>
+				<li>Run <code>" . LITHIUM_LIBRARY_PATH . "/nZEDb</code>'s install routine.</li>
+			</ul>"
 		);
 	},
 	'change' => function() use ($notify, $self) {
@@ -140,7 +149,7 @@ $checks = array(
 
 		return $notify(
 			'warning',
-			"Using the default setup page",
+			"Using the default setup page ;-)",
 			"When the database is correctly setup this page will be skipped automatically."
 		);
 	},
