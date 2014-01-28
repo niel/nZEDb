@@ -26,7 +26,9 @@ fi
 
 cd ${LIBS}
 
-git clone git@github.com:UnionOfRAD/li3_docs.git
+# If you are developing the code, uncomment the following to have the documentation
+# plugin installed. The application will detect and enable it automatically.
+#git clone git@github.com:UnionOfRAD/li3_docs.git
 git clone git@github.com:michaelhue/li3_flash_message.git
 git clone git@github.com:eLod/li3_mailer.git
 git clone git@github.com:UnionOfRAD/li3_quality.git
