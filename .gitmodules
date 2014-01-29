@@ -1,0 +1,12 @@
+[submodule "libraries/nZEDb"]
+	path = libraries/nZEDb
+	url = git@github.com:nZEDb/nZEDb.git
+[submodule "libraries/li3_quality"]
+	path = libraries/li3_quality
+	url = https://github.com/UnionOfRAD/li3_quality.git
+[submodule "libraries/li3_flash_message"]
+	path = libraries/li3_flash_message
+	url = https://github.com/michaelhue/li3_flash_message.git
+[submodule "libraries/li3_mailer"]
+	path = libraries/li3_mailer
+	url = https://github.com/eLod/li3_mailer.git
