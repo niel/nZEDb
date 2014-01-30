@@ -141,7 +141,7 @@ Libraries::add('nZEDb',
 			{
 				return $options['path'] . '/www/lib/' . $class;
 			},*/
-		'bootstrap' => 'www/automated.config.php',
+		'bootstrap' => 'www' . DIRECTORY_SEPARATOR . 'automated.config.php',
 		'defer' => true,
 		'default' => false
 	)
