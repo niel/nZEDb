@@ -140,7 +140,7 @@ $checks = array(
 				<li> - OR -</li>
 				<li>Create <code>config/db-config.php</code> and add/copy the constants that nZEDb would use.</li>
 				<li> - OR -</li>
-				<li>Run <code>" . LITHIUM_LIBRARY_PATH . "/nZEDb</code>'s install routine.</li>
+				<li>Run <code>" . nZEDb_ROOT . DS ."www</code>'s install routine.</li>
 			</ul>"
 		);
 	},
