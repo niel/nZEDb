@@ -20,7 +20,7 @@ CREATE TABLE collections (
 
 CREATE INDEX ix_collection_filecheck ON collections (filecheck);
 CREATE INDEX ix_collection_dateadded ON collections (dateadded);
-CREATE INDEX ix_collection_collectionhash ON collections (collectionhash);
+CREATE UNIQUE INDEX ix_collection_collectionhash ON collections (collectionhash);
 CREATE INDEX ix_collection_releaseid ON collections (releaseid);
 
 DROP TABLE IF EXISTS binaries;
@@ -975,6 +975,7 @@ INSERT INTO site
 	('home_link','/'),
 	('dereferrer_link',''),
 	('nzbpath','/your/path/to/nzbs/'),
+	('coverspath','/your/path/to/covers/'),
 	('lookuptvrage', 1),
 	('lookupimdb', 1),
 	('lookupnfo', 1),
@@ -1088,7 +1089,7 @@ INSERT INTO site
 	('showdroppedyencparts', '0'),
 	('book_reqids', '8010'),
 	('showbacks', '0'),
-	('sqlpatch','172');
+	('sqlpatch','174');
 
 DROP TABLE IF EXISTS logging;
 CREATE TABLE logging (

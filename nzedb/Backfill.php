@@ -445,7 +445,6 @@ class Backfill
 		if (!isset($nntp)) {
 			exit($this->c->error("Not connected to usenet(backfill->daytopost).\n"));
 		}
-
 		// DEBUG every postdate call?!?!
 		$pddebug = false;
 		if ($debug) {
@@ -593,4 +592,3 @@ class Backfill
 		echo $this->c->set256($this->primary) . $type . ' Safe Threaded for ' . $group . " completed.\n" . $this->c->rsetColor();
 	}
 }
-?>

@@ -48,16 +48,21 @@ pathname = os.path.abspath(os.path.dirname(sys.argv[0]))
 print(bcolors.HEADER + "\nBackfill Safe Threaded Started at {}".format(datetime.datetime.now().strftime("%H:%M:%S")) + bcolors.ENDC)
 
 cur = connect()
-cur[0].execute("SELECT name FROM shortgroups")
+cur[0].execute("SELECT g.name FROM groups g LEFT JOIN shortgroups ON shortgroups.name = g.name WHERE shortgroups.name IS NULL AND backfill = 1")
 dorun = cur[0].fetchone()
 disconnect(cur[0], cur[1])
-if not dorun:
+if dorun:
 	#before we get the groups, lets update shortgroups
 	subprocess.call(["php", pathname+"/../nix/tmux/bin/update_groups.php", ""])
-elif len(sys.argv) > 1 and sys.argv[1] not in dorun:
-	#if not dorun:
-	#before we get the groups, lets update shortgroups
-	subprocess.call(["php", pathname+"/../nix/tmux/bin/update_groups.php", ""])
+else:
+	cur = connect()
+	cur[0].execute("SELECT name FROM shortgroups")
+	dorun = cur[0].fetchone()
+	disconnect(cur[0], cur[1])
+	if len(sys.argv) > 1 and sys.argv[1] not in dorun:
+		#if not dorun:
+		#before we get the groups, lets update shortgroups
+		subprocess.call(["php", pathname+"/../nix/tmux/bin/update_groups.php", ""])
 
 count = 0
 previous = "'alt.binaries.crap'"
@@ -165,7 +170,7 @@ class queue_runner(threading.Thread):
 				if my_id:
 					time_of_last_run = time.time()
 					subprocess.call(["php", pathname+"/../nix/tmux/bin/safe_pull.php", ""+my_id])
-					time.sleep(.05)
+					time.sleep(.03)
 					self.my_queue.task_done()
 
 def main(args):
@@ -188,7 +193,7 @@ def main(args):
 
 	#now load some arbitrary jobs into the queue
 	for i in range(0, int(geteach)):
-		time.sleep(.1)
+		time.sleep(.03)
 		my_queue.put("%s %s %s %s" % (datas[0], datas[1] - i * maxmssgs - 1, datas[1] - i * maxmssgs - maxmssgs, i+1))
 
 	my_queue.join()

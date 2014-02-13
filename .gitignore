@@ -9,10 +9,7 @@ php-errors.log
 *#
 *~
 
-app/resources/tmp/
 /nbproject/
 /nbproject/private/
+/resources/tmp/*
 /smarty/lib/templates_c/*
-
-
-/*/*~

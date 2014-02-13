@@ -9,7 +9,7 @@ class AniDB
 		$site = $s->get();
 		$this->aniqty = (!empty($site->maxanidbprocessed)) ? $site->maxanidbprocessed : 100;
 		$this->echooutput = $echooutput;
-		$this->imgSavePath = nZEDb_WWW.'covers/anime/';
+		$this->imgSavePath = nZEDb_WWW . 'covers/anime/';
 		$this->db = new DB();
 		$this->c = new ColorCLI();
 	}
@@ -394,4 +394,3 @@ class AniDB
 		$this->processAnAnimeRelease($results);
 	}
 }
-?>

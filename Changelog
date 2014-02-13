@@ -3,10 +3,73 @@ No pull requests will be accepted without this file being updated to reflect wha
 No pull requests will be accepted to any branch except the dev branch.
 Each update goes to the top of the file
 
-***Please run runonce/relocateOldDirectoryContents.php to move all of your old files into the new folder names***
+***Please run _runonce/relocateOldDirectoryContents.php to move all of your old files into the new folder names***
 ***moved smarty path, please run sudo chmod -R 777 smarty/templates_c/***
 
 
+2014-02-12 -> jonnyboy -> fixed bug in backfill_safe_threaded.py not running on correct group when binaries_safe.py not being used
+                          added method to convert_mysql_tables.php to convert all parts to MyISAM Dynamic, the rest same as cinnodb
+                          updated show_table_sizes.php to show current values
+                          force 'USE INDEX(ix_releases_status)' in postprocess_threaded.py
+                          updated Dev/*.php scripts to use ColorCLI() and removed unneeded requires
+2014-02-11 -> jonnyboy -> fixed monitor, inccorect placement of forced use index
+                          updated delete_releases.php to echo query before running it
+                          updated monitor.php to force 'USE INDEX(ix_releases_status)'
+                          updated remove_exact_dupes.php to delete to highest id first, might save some re-processing
+                          updated nzb-imported.php to consider 1% variation in size to be the same when searching for existing release
+                          updated remove_exact_dupes.php to allow purging releases with a variance of 1% in size
+                          added mediainfo/ffmpg monitoring to monitor_binaries_backfill_pp.php
+                          corrected query to compare $cleanerName, removed unnecessary queries
+                          updated query to enforce the groupid
+2014-02-10 -> jonnyboy -> added routine to drop/create index when creating tpg collections tables
+                          added unique constraint to collectionhash
+                          added monitor_binaries_backfill.php, added 2 required arguments
+                          added script to verify images exist for books, music and consoles
+                          reverted more, fixing .gitignore
+2014-02-10 -> kevin    -> Comment/additional changes to xfeature gzip decompression.
+2014-02-10 -> jonnyboy -> attempt to revert some file path changes
+2014-02-09 -> jonnyboy -> changed populate nzbs to insert/update instead if check first then insert/update
+2014-02-09 -> kevin    -> changed nntp compression to verify end of stream before decompress
+                          nzedb/NNTP.php ; Disconnect from usenet if still connected when the class goes out of scope.
+2014-02-09 -> niel     -> Upd: Adding 'coverspath' setting to schema.
+2014-02-09 -> jonnyboy -> changed order in if
+                          added nZEDb_THEMES for pointing to fs themes path
+                          changed browse->flags to work with all themes where flags are available, added tooltip to show country
+2014-02-08 -> niel     -> Fix: Adding the missing slash to the themes path.
+2014-02-08 -> bart39   -> regex addition/fixes
+                          fixed preg_replace in test-all-regexes.php
+                          removed extra space
+2014-02-08 -> jonnyboy -> updated show_table_sizes.php to show egine and format
+                          removed persistant mysql connections from DB.php, not needed or recommended with mysql
+                          added another myisam row format to updated convert_mysql_tables.php and improved usage instructions
+                          reduced sleep time in populating queue in python scripts
+                          added option to optimize all tables at once, force optimize all tables or analyze only optimise.php
+                          added analyze tables every 60 min to monitor.php
+2014-02-07 -> niel     -> Upd: Updated install steps so that they correctly use the autoloader.
+2014-02-07 -> jonnyboy -> fixed links to libs in install scripts, fixed more links
+                          removed extra space
+2014-02-06 -> jonnyboy -> add regex for teevee
+                          fixing spaces to tabs, merged statments
+2014-02-06 -> egandt   -> fix for Categories when dealing with anime ImageSets
+2014-02-06 -> bart39   -> fixed console/music search filters
+                          paste error
+                          accidently removed require_once nZEDb_LIBS . 'AmazonProductAPI.php'
+                          group music releases by musicinfo
+                          fixed duplicate musicinfo records, you may want to run misc/testing/DB/reset_postprocessing.php music true truncate to reprocess
+2014-02-06 -> niel     -> Upd: Part 2 (ish) of directory changes/moves
+2014-02-05 -> bart39   -> removed un-needed dereferer link
+                          fixed console, books and movie templates in alpha theme
+                          fixed a.b.mp3 regex in ReleaseCleaning
+2014-02-05 -> jonnyboy -> fixed bug in backfill->daytopost where new groups were not starting when using 'Days'
+                          changed buttons in light theme console and music
+2014-02-04 -> bart39   -> regex additions
+                          only reset searchnames <=15 if name is > 15 in renametopre
+                          group console release in cover view (like movies)
+                          fixed book/movie cover view typos
+                          fixed duplicate consoleinfo records, you may want to run misc/testing/DB/reset_postprocessing.php consoles true truncate to reprocess
+2014-02-04 -> jonnyboy -> fixed tvrage edit
+2014-02-04 -> niel     -> Upd: Removing a left over debug message
+2014-02-04 -> jonnyboy -> fixed delete_disabled_category_releases.php, removed unneeded require statements
 2014-02-02 -> niel     -> Fix: Missing quote in query.
 2014-02-02 -> kevin    -> Add phpdoc to NZB.php, get closer to 80 chars per line, change a function to use the site class instance object instead of creating another instance of class site.
                           Quick cleanup of the ZipFile class.

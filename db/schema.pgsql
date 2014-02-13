@@ -1347,6 +1347,7 @@ INSERT INTO site
 	('home_link','/'),
 	('dereferrer_link',''),
 	('nzbpath','/your/path/to/nzbs/'),
+	('coverspath','/your/path/to/covers/'),
 	('lookuptvrage', 1),
 	('lookupimdb', 1),
 	('lookupnfo', 1),
@@ -1460,7 +1461,7 @@ INSERT INTO site
 	('showdroppedyencparts', '0'),
 	('book_reqids', '8010'),
 	('showbacks', '0'),
-	('sqlpatch','172');
+	('sqlpatch','174');
 
 
 INSERT INTO tmux (setting, value) values ('defrag_cache','900'),
@@ -1810,7 +1811,7 @@ CREATE INDEX "collections_filecheck" ON "collections" ("filecheck");
 DROP INDEX IF EXISTS "collections_dateadded" CASCADE;
 CREATE INDEX "collections_dateadded" ON "collections" ("dateadded");
 DROP INDEX IF EXISTS "collections_collectionhash" CASCADE;
-CREATE INDEX "collections_collectionhash" ON "collections" ("collectionhash");
+CREATE UNIQUE INDEX "collections_collectionhash" ON "collections" ("collectionhash");
 DROP INDEX IF EXISTS "collections_releaseid" CASCADE;
 CREATE INDEX "collections_releaseid" ON "collections" ("releaseid");ALTER TABLE "consoleinfo" ADD CONSTRAINT "consoleinfo_id_pkey" PRIMARY KEY("id");ALTER TABLE "content" ADD CONSTRAINT "content_id_pkey" PRIMARY KEY("id");ALTER TABLE "forumpost" ADD CONSTRAINT "forumpost_id_pkey" PRIMARY KEY("id");
 DROP INDEX IF EXISTS "forumpost_parentid" CASCADE;
