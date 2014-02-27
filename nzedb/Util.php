@@ -3,6 +3,23 @@
  * General util functions.
  */
 
+class Util
+{
+	static public function setCoversConstant($path)
+	{
+		if (!defined('nZEDb_COVERS')) {
+			define('nZEDb_COVERS', $path == '' ? nZEDb_WWW . 'covers' . DS : $path);
+		}
+	}
+
+	static public function trailingSlash(&$path)
+	{
+		if (substr($path, strlen($path) - 1) != '/') {
+			$path .= '/';
+		}
+	}
+}
+
 // Central function for sending site email.
 function sendEmail($to, $subject, $contents, $from)
 {
@@ -126,7 +143,7 @@ function getUrl($url, $method = 'get', $postdata = '', $language = "")
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
 	$buffer = curl_exec($ch);
 	$err = curl_errno($ch);
