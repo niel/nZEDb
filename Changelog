@@ -7,7 +7,55 @@ Each update goes to the top of the file
 ***moved smarty path, please run sudo chmod -R 777 smarty/templates_c/***
 
 
+2014-03-12 -> niel     -> Chg: Moving .../db dir to .../resources/db
+                       -> Upd: Fixing trailing white-space from previous commit ;-)
+2014-03-12 -> kevin    -> User changeable themes in profile edit. (Apply the SQL patch).
+                       -> Fix the "legend" in alpha admin site edit, simple/default profile edit (the large text thing).
+                       -> Make predb template easier to maintain, add changes to other themes and fix for showing the size, add N/A when no size or no category.
+                       -> Change predb page to show all info to all users, put rest of the changes in all the themes (nzbindex/binsearch icons, N/A when no category or size, fix for some sizes not showing, more category links, usenet-crawler link, requestid link).
+                       -> Use defined category names in predb template to make it look better.
+                       -> Fix register bug in alpha theme.
+2014-03-11 -> kevin    -> Fix issues in viewnzb (couchpotato details are wrong and getting wrong titles for some stuff).
+                       -> Add nzbindex and binsearch icons to predb instead of text.
+                       -> Add more category links to predb and add link to usenet-crawler predb.
+2014-03-11             -> Remove vendor from script literal, path doesn't exist.
+2014-03-10 -> bart39   -> fixed some echo CLI formatting
+2014-03-10 -> ruhllatio-> Remove unnecessary join from fixreleasenames_threaded.py
+2014-03-10 -> bart39   -> reverted previous change to releases->stage7a as one big delete is quicker than looping in php
+2014-03-10 -> kevin    -> Change min username/password length to work better with people who converted from newznab.
+                       -> Fix indent in alpha theme.
+                       -> Check if a var is set in monitor.php
+                       -> Update jquery qtip URL.
+                       -> Use some local stylesheets and scripts.
+                       -> Add missing fontawesome-webfont.woff file on alpha theme.
+2014-03-09 -> kevin    -> Option for hiding CLI output in automated.config.php(for post proc right now).
+                       -> Hiding of CLI output in AniDb.php, Backfill.php, Binaries.php, etc
+                       -> Check if the user put the wrong setting for grabnzbs.
+                       -> NNTP only echo data received once we have it.
+2014-03-09 -> bart39   -> refactor query
+                       -> regex addition/fixes
+		       -> typo in reset_postprocessing.php
+2014-03-07 -> bart39   -> Fix: #1203 add Half SBS to 3d Category
+2014-03-07 -> kevin    -> Fix: Error message not set in NNTP.
+                       -> Change: More checks in postproc.
+                       -> Refactor ReleaseImage.php, fix bug where it wasn't deleting preview images and it was trying to delete imdb images, don't use imagecreatefromstring 2 times.
+                       -> Check for duplicate predb rows when inserting usenet crawler.
+                       -> When we fail to download yEnc articles for the rar in postprocess, try different articles. Fix spacing in movie.php echo's.
+                       -> Decompress par2, run the binary data through namefixer.
+2014-03-06 -> bart39   -> Fix: fixed typos in previous change
+                          Fix: fixed music / book processing where "Lookup All" only checked those not renamed
+                          Fix: fixed issue with "Lookup all Console" only checking those not renamed
+                          Fix: fixed issue updating bookInfo
+2014-03-06 -> kevin    -> Remove check for images smaller than 12 bytes in releaseimage, causes issues with amazon.
+                       -> Remove checking of capabilities, too many servers don't support it.
+                       -> Fix issue where postproc was running ffmpeg when the path wasn't set.
 2014-03-05 -> kevin    -> More refactor of post proc.
+                       -> Use TLS instead of SSL on the nntp connection, TLS is more secure.
+                       -> Fix some issues connecting to usenet.
+                       -> Add a script to use NET_NNTP's debug when debugging NNTP.
+                       -> Check if XFeature GZip Compress is in the list of capabilities.
+                       -> If we switch of NNTP server on the same instance, reset the capabilities.
+                       -> Change phpdoc in yenc causing weak warnings in nntp.
 2014-03-05 -> bart39   -> Fix: fixed issue with postprocess_threaded.py
 2013-03-04 -> niel     -> Chg: Reverting default covers path change
                        -> Chg: Adding next-master and master to branches that allow pre-commit to update the commit number.
