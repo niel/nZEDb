@@ -6,7 +6,6 @@
 		</fieldset></div>
 	<br>
 {/if}
-
 {* {if $covergrp != ''}
 <div class="accordion" id="searchtoggle">
 	<div class="accordion-group">
@@ -24,7 +23,6 @@
 	</div>
 </div>
 {/if} *}
-
 {if $results|@count > 0}
 	<form id="nzb_multi_operations_form" action="get">
 		<div class="container nzb_multi_operations" style="text-align:right;margin-bottom:5px;">
@@ -33,8 +31,8 @@
 					<i class="icon-th-list"></i>
 				</a>
 				&nbsp;&nbsp;
-				<span
-					><i class="icon-align-justify"></i>
+				<span>
+					<i class="icon-align-justify"></i>
 				</span>
 			{/if}
 			{if $isadmin || $ismod}
@@ -47,90 +45,101 @@
 		{include file='multi-operations.tpl'}
 		<table class="table table-striped table-bordered table-condensed table-hover data" id="browsetable">
 			<thead>
-			<tr>
-				<th>
-					<div class="icon">
-						<input id="chkSelectAll" type="checkbox" class="nzb_check_all">
-					</div>
-				</th>
-				<th style="vertical-align:top;">name
-					<a title="Sort Descending" href="{$orderbyname_desc}"><i class="icon-chevron-down"></i></a>
-					<a title="Sort Ascending" href="{$orderbyname_asc}"><i class="icon-chevron-up"></i></a>
-				</th>
-				<th style="vertical-align:top;text-align:center;">category<br>
-					<a title="Sort Descending" href="{$orderbycat_desc}"><i class="icon-chevron-down"></i></a>
-					<a title="Sort Ascending" href="{$orderbycat_asc}"><i class="icon-chevron-up"></i></a>
-				</th>
-				<th style="vertical-align:top;text-align:center;">posted<br>
-					<a title="Sort Descending" href="{$orderbyposted_desc}"><i class="icon-chevron-down"></i></a>
-					<a title="Sort Ascending" href="{$orderbyposted_asc}"><i class="icon-chevron-up"></i></a>
-				</th>
-				<th style="vertical-align:top;text-align:center;">size<br>
-					<a title="Sort Descending" href="{$orderbysize_desc}"><i class="icon-chevron-down"></i></a>
-					<a title="Sort Ascending" href="{$orderbysize_asc}"><i class="icon-chevron-up"></i></a>
-				</th>
-				<th style="vertical-align:top;text-align:center;">files<br>
-					<a title="Sort Descending" href="{$orderbyfiles_desc}"><i class="icon-chevron-down"></i></a>
-					<a title="Sort Ascending" href="{$orderbyfiles_asc}"><i class="icon-chevron-up"></i></a>
-				</th>
-				<th style="vertical-align:top;text-align:center;">stats<br>
-					<a title="Sort Descending" href="{$orderbystats_desc}"><i class="icon-chevron-down"></i></a>
-					<a title="Sort Ascending" href="{$orderbystats_asc}"><i class="icon-chevron-up"></i></a>
-				</th>
-				<th style="vertical-align:top;text-align:center;">action</th>
-			</tr>
+				<tr>
+					<th>
+						<div class="icon">
+							<input id="chkSelectAll" type="checkbox" class="nzb_check_all">
+						</div>
+					</th>
+					<th style="vertical-align:top;">name
+						<a title="Sort Descending" href="{$orderbyname_desc}"><i class="icon-chevron-down"></i></a>
+						<a title="Sort Ascending" href="{$orderbyname_asc}"><i class="icon-chevron-up"></i></a>
+					</th>
+					<th style="vertical-align:top;text-align:center;">category<br>
+						<a title="Sort Descending" href="{$orderbycat_desc}"><i class="icon-chevron-down"></i></a>
+						<a title="Sort Ascending" href="{$orderbycat_asc}"><i class="icon-chevron-up"></i></a>
+					</th>
+					<th style="vertical-align:top;text-align:center;">posted<br>
+						<a title="Sort Descending" href="{$orderbyposted_desc}"><i class="icon-chevron-down"></i></a>
+						<a title="Sort Ascending" href="{$orderbyposted_asc}"><i class="icon-chevron-up"></i></a>
+					</th>
+					<th style="vertical-align:top;text-align:center;">size<br>
+						<a title="Sort Descending" href="{$orderbysize_desc}"><i class="icon-chevron-down"></i></a>
+						<a title="Sort Ascending" href="{$orderbysize_asc}"><i class="icon-chevron-up"></i></a>
+					</th>
+					<th style="vertical-align:top;text-align:center;">files<br>
+						<a title="Sort Descending" href="{$orderbyfiles_desc}"><i class="icon-chevron-down"></i></a>
+						<a title="Sort Ascending" href="{$orderbyfiles_asc}"><i class="icon-chevron-up"></i></a>
+					</th>
+					<th style="vertical-align:top;text-align:center;">stats<br>
+						<a title="Sort Descending" href="{$orderbystats_desc}"><i class="icon-chevron-down"></i></a>
+						<a title="Sort Ascending" href="{$orderbystats_asc}"><i class="icon-chevron-up"></i></a>
+					</th>
+					<th style="vertical-align:top;text-align:center;">action</th>
+				</tr>
 			</thead>
 			<tbody>
 			{foreach from=$results item=result}
 				<tr class="{if $lastvisit|strtotime<$result.adddate|strtotime}success{/if}" id="guid{$result.guid}">
-					<td style="width:26px;text-align:center;white-space:nowrap;">
+					<td class="check" style="width:26px;text-align:center;white-space:nowrap;">
 						<input id="chk{$result.guid|substr:0:7}" type="checkbox" class="nzb_check" value="{$result.guid}">
 					</td>
-					<td style="width:100%;text-align:left;">
-						<a class="title" title="View details"  href="{$smarty.const.WWW_TOP}/details/{$result.guid}/{$result.searchname|escape:"seourl"}">
-							<strong>{$result.searchname|escape:"htmlall"|replace:".":" "}</strong>
-						</a>
+					<td class="item" style="width:100%;text-align:left;">
+						<label for="chk{$result.guid|substr:0:7}">
+							<a
+								class="title"
+								title="View details"
+								href="{$smarty.const.WWW_TOP}/details/{$result.guid}/{$result.searchname|escape:"htmlall"}"
+							>{$result.searchname|escape:"htmlall"|truncate:150:"...":true}</a>
+						</label>
 						<div class="resextra">
 							{if $result.passwordstatus == 1}
-								<span class="icon-stack" title="Probably Passworded">
-									<i class="icon-check-empty icon-stack-base"></i>
-									<i class="icon-unlock-alt"></i>
-								</span>
+								<span class="icon-stack" title="Potentially Passworded"><i class="icon-check-empty icon-stack-base"></i><i class="icon-unlock-alt"></i></span>
 							{elseif $result.passwordstatus == 2}
-								<span class="icon-stack" title="Broken Post">
-									<i class="icon-check-empty icon-stack-base"></i>
-									<i class="icon-unlink"></i>
-								</span>
+								<span class="icon-stack" title="Broken Post"><i class="icon-check-empty icon-stack-base"></i><i class="icon-unlink"></i></span>
 							{elseif $result.passwordstatus == 10}
-								<span class="icon-stack" title="Passworded Archive">
-									<i class="icon-check-empty icon-stack-base"></i>
-									<i class="icon-lock"></i>
-								</span>
+								<span class="icon-stack" title="Passworded Archive"><i class="icon-check-empty icon-stack-base"></i><i class="icon-lock"></i></span>
 							{/if}
-							{release_flag($result.searchname, browse)}
 							{if $result.videostatus > 0}
 								<a
 									class="label label-default model_prev"
 									href="{$smarty.const.WWW_TOP}/details/{$result.guid}/{$result.searchname|escape:"htmlall"}"
 									title="This release has a video preview"
 									rel="preview"
-								>
-									<i class="icon-youtube-play"></i>
-								</a>
+								><i class="icon-youtube-play"></i></a>
 							{/if}
 							{if $result.nfoid > 0}
-								<a class="label label-default modal_nfo" href="{$smarty.const.WWW_TOP}/nfo/{$result.guid}" title="View Nfo" rel="nfo">
-									<i class="icon-info-sign"></i>
-								</a>
+								<a
+									class="label label-default modal_nfo"
+									href="{$smarty.const.WWW_TOP}/nfo/{$result.guid}"
+									title="View Nfo" rel="nfo"
+								><i class="icon-info-sign"></i></a>
 							{/if}
 							{if $result.imdbid > 0}
-								<a class="label label-default modal_imdb" href="#" name="name{$result.imdbid}" title="View movie info" rel="movie" >Cover</a>
+								<a
+									class="label label-default modal_imdb"
+									href="#" name="name{$result.imdbid}"
+									title="View movie info"
+									rel="movie"
+								><i class="icon-film"></i></a>
 							{/if}
 							{if $result.musicinfoid > 0}
-								<a class="label label-default modal_music" href="#" name="name{$result.musicinfoid}" title="View music info" rel="music" >Cover</a>
+								<a
+									class="label label-default modal_music"
+									href="#"
+									name="name{$result.musicinfoid}"
+									title="View music info"
+									rel="music"
+								><i class="icon-music"></i></a>
 							{/if}
 							{if $result.consoleinfoid > 0}
-								<a class="label label-default modal_console" href="#" name="name{$result.consoleinfoid}" title="View console info" rel="console" >Cover</a>
+								<a
+									class="label label-default modal_console"
+									href="#"
+									name="name{$result.consoleinfoid}"
+									title="View console info"
+									rel="console"
+								><i class="icon-off"></i></a>
 							{/if}
 							{if $result.haspreview == 1 && $userdata.canpreview == 1}
 								<a
@@ -139,9 +148,7 @@
 									name="name{$result.guid}"
 									title="Screenshot of {$result.searchname|escape:"htmlall"}"
 									rel="preview"
-								>
-									Preview
-								</a>
+								><i class="icon-camera"></i></a>
 							{/if}
 							{if $result.jpgstatus == 1 && $userdata.canpreview == 1}
 								<a
@@ -150,39 +157,48 @@
 									name="name{$result.guid}"
 									title="Sample of {$result.searchname|escape:"htmlall"}"
 									rel="preview"
-								>
-									Sample
-								</a>
+								><i class="icon-picture"></i></a>
 							{/if}
 							{if $result.rageid > 0}
-								<a class="label label-default" href="{$smarty.const.WWW_TOP}/series/{$result.rageid}" title="View all episodes">View Series</a>
+								<a
+									class="label label-default"
+									href="{$smarty.const.WWW_TOP}/series/{$result.rageid}"
+									title="View all episodes"
+								><i class="icon-bookmark"></i></a>
 							{/if}
 							{if $result.anidbid > 0}
-								<a class="label label-default" href="{$smarty.const.WWW_TOP}/anime/{$result.anidbid}" title="View all episodes">View Anime</a>
+								<a
+									class="label label-default"
+									href="{$smarty.const.WWW_TOP}/anime/{$result.anidbid}"
+									title="View all anime"
+								><i class="icon-font"></i></a>
 							{/if}
 							{if $result.tvairdate != ""}
 								<span
 									class="label label-default seriesinfo"
 									title="{$result.guid}"
-								>
-									Aired {if $result.tvairdate|strtotime > $smarty.now}in future{else}{$result.tvairdate|daysago}{/if}
-								</span>
+								>Aired {if $result.tvairdate|strtotime > $smarty.now}in future{else}{$result.tvairdate|daysago}{/if}</span>
 							{/if}
 							{if $result.reid > 0}
-								<span class="label label-default mediainfo" title="{$result.guid}">Media</span>
+								<span
+									class="label label-default mediainfo"
+									title="{$result.guid}"
+								><i class="icon-list-alt"></i></span>
 							{/if}
 							{if $result.preid > 0}
-								<span class="label label-default preinfo rndbtn" title="{$result.preid}">PreDB</span>
+								<span
+									class="label label-default preinfo rndbtn"
+									title="{$result.preid}"
+								><i class="icon-eye-open"></i></span>
 							{/if}
 							{if $result.group_name != ""}
 								<a
 									class="label label-default"
 									href="{$smarty.const.WWW_TOP}/browse?g={$result.group_name|escape:"htmlall"}"
 									title="Browse {$result.group_name}"
-								>
-									{$result.group_name|escape:"htmlall"|replace:"alt.binaries.":"a.b."}
-								</a>
+								><i class="icon-share-alt"></i></a>
 							{/if}
+							{release_flag($result.searchname, browse)}
 						</div>
 					</td>
 					<td style="width:auto;text-align:center;white-space:nowrap;">
@@ -210,7 +226,7 @@
 						<i class="icon-file"></i>
 						{if $result.rarinnerfilecount > 0}
 							<div class="rarfilelist">
-								<img src="{$smarty.const.WWW_TOP}/themes/alpha/images/icons/magnifier.png" alt="{$result.guid}">
+								<img src="{$smarty.const.WWW_TOP}/themes_shared/images/icons/magnifier.png" alt="{$result.guid}">
 							</div>
 						{/if}
 					</td>
