@@ -102,7 +102,7 @@ Class PreDb
 		$nfos = $this->matchNfo($nntp);
 		if ($this->echooutput) {
 			$count = ($nfos > 0) ? $nfos : 0;
-			echo $this->c->header("Added " . number_format($count) . ' missing NFOs from preDB sources.');
+			echo $this->c->header("\nAdded " . number_format($count) . ' missing NFOs from preDB sources.');
 		}
 	}
 
@@ -774,9 +774,9 @@ Class PreDb
 
 		$tq = '';
 		if ($time == 1) {
-			if ($db->dbSystem() == 'mysql') {
+			if ($db->dbSystem() === 'mysql') {
 				$tq = 'AND r.adddate > (NOW() - INTERVAL 3 HOUR) ORDER BY rf.releaseid, rf.size DESC';
-			} else if ($db->dbSystem() == 'pgsql') {
+			} else if ($db->dbSystem() === 'pgsql') {
 				$tq = "AND r.adddate > (NOW() - INTERVAL '3 HOURS') ORDER BY rf.releaseid, rf.size DESC";
 			}
 		}
@@ -792,9 +792,9 @@ Class PreDb
 			}
 			echo $this->c->header('Fixing search names' . $te . " using the predb md5.");
 		}
-		if ($db->dbSystem() == 'mysql') {
+		if ($db->dbSystem() === 'mysql') {
 			$regex = "AND (r.ishashed = 1 OR rf.name REGEXP'[a-fA-F0-9]{32}')";
-		} else if ($db->dbSystem() == 'pgsql') {
+		} else if ($db->dbSystem() === 'pgsql') {
 			$regex = "AND (r.ishashed = 1 OR rf.name ~ '[a-fA-F0-9]{32}')";
 		}
 
