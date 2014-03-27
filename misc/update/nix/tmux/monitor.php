@@ -3,13 +3,6 @@
 require_once dirname(__FILE__) . '/../../../../www/config.php';
 
 $c = new ColorCLI();
-$versions = @simplexml_load_file(nZEDb_VERSIONS);
-if ($versions === false) {
-	exit($c->error("\nYour versioning XML file ({nZEDb_VERSIONS}) is broken, try updating from git.\n"));
-}
-exec('git log | grep "^commit" | wc -l', $commit);
-
-$version = $versions->versions->git->tag . 'r' . $commit[0];
 
 $db = new DB();
 $DIR = nZEDb_MISC;
@@ -22,9 +15,8 @@ $seq = (isset($tmux->sequential)) ? $tmux->sequential : 0;
 $powerline = (isset($tmux->powerline)) ? $tmux->powerline : 0;
 $colors = (isset($tmux->colors)) ? $tmux->colors : 0;
 
-$s = new Sites();
-$site = $s->get();
-$patch = $site->sqlpatch;
+$s              = new Sites();
+$site           = $s->get();
 $alternate_nntp = ($site->alternate_nntp === '1') ? true : false;
 $tablepergroup = (isset($site->tablepergroup)) ? $site->tablepergroup : 0;
 $delay = (isset($site->delaytime)) ? $site->delaytime : 2;
@@ -339,6 +331,8 @@ $mask5 = $c->tmuxOrange("%-16.16s %25.25s %25.25s");
 //create display
 passthru('clear');
 //printf("\033[1;31m First insert:\033[0m ".relativeTime("$firstdate")."\n");
+$version = getVersionNumber();
+$patch = getPatchNumber();
 if ($running == 1) {
 	printf($mask2, "Monitor Running v$version [" . $patch . "]: ", relativeTime("$time"));
 } else {
@@ -966,6 +960,8 @@ while ($i > 0) {
 	}
 
 	//update display
+	$version = getVersionNumber();
+	$patch   = getPatchNumber();
 	passthru('clear');
 	//printf("\033[1;31m First insert:\033[0m ".relativeTime("$firstdate")."\n");
 	if ($running == 1) {
@@ -1599,4 +1595,24 @@ while ($i > 0) {
 
 	$i++;
 	sleep(10);
+}
+
+function getVersionNumber()
+{
+	global $c;
+
+	$versions = @simplexml_load_file(nZEDb_VERSIONS);
+	if ($versions === false) {
+		exit($c->error("\nYour versioning XML file ({nZEDb_VERSIONS}) is broken, try updating from git.\n"));
+	}
+	exec('git log | grep "^commit" | wc -l', $commit);
+
+	return $versions->versions->git->tag . 'r' . $commit[0];
+}
+
+function getPatchNumber()
+{
+	global $s;
+	$site  = $s->get();
+	return  $site->sqlpatch;
 }
