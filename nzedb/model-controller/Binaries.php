@@ -789,11 +789,20 @@ class Binaries
 					// Set up the info for inserting into parts/binaries/collections tables.
 					if (!isset($this->message[$subject])) {
 						$this->message[$subject] = $msg;
-						$this->message[$subject]['MaxParts'] = (int) $matches[3];
 						// Check if it's unix time or a date string.
 						$date = (is_numeric($msg['Date']) ? $msg['Date'] : strtotime($msg['Date']));
+						// Fixes for those with bad time settings.
+						if ($this->db->dbSystem() === 'mysql') {
+							$now = $this->db->queryOneRow('SELECT UNIX_TIMESTAMP(NOW()) AS time');
+							$now = ($now !== false ? (int)$now['time'] : time());
+						} else {
+							$now = time();
+						}
 						// Check if it's newer than now, if so, set it now.
-						$this->message[$subject]['Date'] = ($date > time() ? time() : $date);
+						$this->message[$subject]['Date'] = ($date > $now ? $now : $date);
+
+						$this->message[$subject]['MaxParts'] = (int) $matches[3];
+
 						// (hash) Groups articles together when forming the release/nzb.
 						$this->message[$subject]['CollectionHash'] = sha1($cleansubject . $msg['From'] . $groupArr['id'] . $filecnt[6]);
 						$this->message[$subject]['MaxFiles'] = (int) $filecnt[6];
@@ -815,7 +824,7 @@ class Binaries
 								(int) $bytes,
 								$nowPart,
 								$this->message[$subject]['MaxParts'],
-								$this->db->from_unixtime($this->message[$subject]['Date'])
+								$this->db->from_unixtime($this->message[$subject]['Date'], true)
 							)
 						);
 					}
@@ -932,7 +941,14 @@ class Binaries
 							} else {
 								if (!$cres) {
 									// added utf8_encode on fromname, seems some foreign groups contains characters that were not escaping properly
-									$csql = sprintf("INSERT INTO ${group['cname']} (subject, fromname, date, xref, groupid, totalfiles, collectionhash, dateadded) VALUES (%s, %s, %s, %s, %d, %d, %s, NOW())", $this->db->escapeString(substr($subject, 0, 255)), $this->db->escapeString(utf8_encode($data['From'])), $this->db->from_unixtime($data['Date']), $this->db->escapeString(substr($data['Xref'], 0, 255)), $groupArr['id'], $data['MaxFiles'], $this->db->escapeString($collectionHash));
+									$csql = sprintf("INSERT INTO ${group['cname']} (subject, fromname, date, xref, groupid, totalfiles, collectionhash, dateadded)
+									VALUES (%s, %s, %s, %s, %d, %d, %s, NOW())",
+										$this->db->escapeString(substr($subject, 0, 255)),
+										$this->db->escapeString(utf8_encode($data['From'])),
+										$this->db->from_unixtime($data['Date'], true),
+										$this->db->escapeString(substr($data['Xref'], 0, 255)),
+										$groupArr['id'], $data['MaxFiles'],
+										$this->db->escapeString($collectionHash));
 									$collectionID = $this->db->queryInsert($csql);
 								} else {
 									$collectionID = $cres['id'];
