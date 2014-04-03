@@ -3,6 +3,13 @@
 require_once dirname(__FILE__) . '/../../../../www/config.php';
 
 $c = new ColorCLI();
+$versions = @simplexml_load_file(nZEDb_VERSIONS);
+if ($versions === false) {
+	exit($c->error("\nYour versioning XML file ({nZEDb_VERSIONS}) is broken, try updating from git.\n"));
+}
+exec('git log | grep "^commit" | wc -l', $commit);
+
+$version = $versions->versions->git->tag . 'r' . $commit[0];
 
 $db = new DB();
 $DIR = nZEDb_MISC;
@@ -17,8 +24,9 @@ $colors = (isset($tmux->colors)) ? $tmux->colors : 0;
 $scrape_cz = $tmux->scrape_cz;
 $scrape_efnet = $tmux->scrape_efnet;
 
-$s              = new Sites();
-$site           = $s->get();
+$s = new Sites();
+$site = $s->get();
+$patch = $site->sqlpatch;
 $alternate_nntp = ($site->alternate_nntp === '1') ? true : false;
 $tablepergroup = (isset($site->tablepergroup)) ? $site->tablepergroup : 0;
 $delay = (isset($site->delaytime)) ? $site->delaytime : 2;
@@ -333,8 +341,6 @@ $mask5 = $c->tmuxOrange("%-16.16s %25.25s %25.25s");
 //create display
 passthru('clear');
 //printf("\033[1;31m First insert:\033[0m ".relativeTime("$firstdate")."\n");
-$version = getVersionNumber();
-$patch = getPatchNumber();
 if ($running == 1) {
 	printf($mask2, "Monitor Running v$version [" . $patch . "]: ", relativeTime("$time"));
 } else {
@@ -962,50 +968,6 @@ while ($i > 0) {
 		}
 	}
 
-	function run_ircscraper($_php, $pane, $scrape_cz, $scrape_efnet)
-	{
-		if ($scrape_cz == 1 && $scrape_efnet == 1) {
-			//Check to see if the pane is dead, if so respawn it.
-			if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^0 | grep -c dead") == 1) {
-				$DIR = nZEDb_MISC;
-				$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
-				shell_exec(
-					"tmux respawnp -t${tmux_session}:${pane}.0 ' \
-						$_php $ircscraper cz false false true'"
-				);
-			}
-			if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^1 | grep -c dead") == 1) {
-				$DIR = nZEDb_MISC;
-				$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
-				shell_exec(
-					"tmux respawnp -t${tmux_session}:${pane}.1 ' \
-						$_php $ircscraper efnet false false true'"
-				);
-			}
-		} else if ($scrape_cz == 1) {
-			if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^0 | grep -c dead") == 1) {
-				$DIR = nZEDb_MISC;
-				$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
-				shell_exec(
-					"tmux respawnp -t${tmux_session}:${pane}.0 ' \
-						$_php $ircscraper cz false false true'"
-				);
-			}
-		} else if ($scrape_efnet == 1) {
-			if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^0 | grep -c dead") == 1) {
-				$DIR = nZEDb_MISC;
-				$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
-				shell_exec(
-					"tmux respawnp -t${tmux_session}:${pane}.0 ' \
-						$_php $ircscraper efne false false true'"
-				);
-			}
-		} else {
-			$color = get_color($colors_start, $colors_end, $colors_exc);
-			shell_exec("tmux respawnp -t${tmux_session}:${pane}.0 'echo \"\033[38;5;\"$color\"m\nIRCScraper has been disabled/terminated by IRCScraping\"'");
-		}
-	}
-
 	if ($compressed === '1') {
 		$mask2 = $c->headerOver("%-20s") . " " . $c->tmuxOrange("%-33.33s");
 	} else {
@@ -1013,8 +975,6 @@ while ($i > 0) {
 	}
 
 	//update display
-	$version = getVersionNumber();
-	$patch   = getPatchNumber();
 	passthru('clear');
 	//printf("\033[1;31m First insert:\033[0m ".relativeTime("$firstdate")."\n");
 	if ($running == 1) {
@@ -1664,22 +1624,46 @@ while ($i > 0) {
 	sleep(10);
 }
 
-function getVersionNumber()
+function run_ircscraper($_php, $pane, $scrape_cz, $scrape_efnet)
 {
-	global $c;
-
-	$versions = @simplexml_load_file(nZEDb_VERSIONS);
-	if ($versions === false) {
-		exit($c->error("\nYour versioning XML file ({nZEDb_VERSIONS}) is broken, try updating from git.\n"));
+	if ($scrape_cz == 1 && $scrape_efnet == 1) {
+		//Check to see if the pane is dead, if so respawn it.
+		if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^0 | grep -c dead") == 1) {
+			$DIR = nZEDb_MISC;
+			$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
+			shell_exec(
+				"tmux respawnp -t${tmux_session}:${pane}.0 ' \
+						$_php $ircscraper cz false false true'"
+			);
+		}
+		if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^1 | grep -c dead") == 1) {
+			$DIR = nZEDb_MISC;
+			$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
+			shell_exec(
+				"tmux respawnp -t${tmux_session}:${pane}.1 ' \
+						$_php $ircscraper efnet false false true'"
+			);
+		}
+	} else if ($scrape_cz == 1) {
+		if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^0 | grep -c dead") == 1) {
+			$DIR = nZEDb_MISC;
+			$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
+			shell_exec(
+				"tmux respawnp -t${tmux_session}:${pane}.0 ' \
+						$_php $ircscraper cz false false true'"
+			);
+		}
+	} else if ($scrape_efnet == 1) {
+		if (shell_exec("tmux list-panes -t${tmux_session}:${pane} | grep ^0 | grep -c dead") == 1) {
+			$DIR = nZEDb_MISC;
+			$ircscraper = $DIR . "testing/IRCScraper/scrape.php";
+			shell_exec(
+				"tmux respawnp -t${tmux_session}:${pane}.0 ' \
+						$_php $ircscraper efne false false true'"
+			);
+		}
+	} else {
+		$color = get_color($colors_start, $colors_end, $colors_exc);
+		shell_exec("tmux respawnp -t${tmux_session}:${pane}.0 'echo \"\033[38;5;\"$color\"m\nIRCScraper has been disabled/terminated by IRCScraping\"'");
 	}
-	exec('git log | grep "^commit" | wc -l', $commit);
-
-	return $versions->versions->git->tag . 'r' . $commit[0];
-}
-
-function getPatchNumber()
-{
-	global $s;
-	$site  = $s->get();
-	return  $site->sqlpatch;
 }
