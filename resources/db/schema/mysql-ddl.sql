@@ -229,12 +229,9 @@ CREATE TABLE predb (
 	source VARCHAR(50) NOT NULL DEFAULT '',
 	md5 VARCHAR(255) NOT NULL DEFAULT '0',
 	requestid INT(10) UNSIGNED NOT NULL DEFAULT '0',
-	groupid INT(10) UNSIGNED NOT NULL DEFAULT '0',
-	/* Is this pre nuked? 0 no 2 yes 1 un nuked 3 mod nuked */
-	nuked TINYINT(1) NOT NULL DEFAULT '0',
-	/* If this pre is nuked, what is the reason? */
-	nukereason VARCHAR(255) NULL,
-  /* How many files does this pre have ? */
+	groupid INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Is this pre nuked? 0 no 2 yes 1 un nuked 3 mod nuked',
+	nuked TINYINT(1) NOT NULL DEFAULT '0' COMMENT 'If this pre is nuked, what is the reason?',
+	nukereason VARCHAR(255) NULL COMMENT 'How many files does this pre have ?',
 	files VARCHAR(50) NULL,
 	PRIMARY KEY (id)
 ) ENGINE=MYISAM DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci AUTO_INCREMENT=1;
@@ -477,6 +474,11 @@ CREATE TABLE users (
 	sabapikey VARCHAR(255) NULL DEFAULT NULL,
 	sabapikeytype TINYINT(1) NULL DEFAULT NULL,
 	sabpriority TINYINT(1) NULL DEFAULT NULL,
+	/* Type of queue, Sab or NZBGet. */
+	queuetype TINYINT(1) NOT NULL DEFAULT 1,
+	nzbgeturl VARCHAR(255) NULL DEFAULT NULL,
+	nzbgetusername VARCHAR(255) NULL DEFAULT NULL,
+	nzbgetpassword VARCHAR(255) NULL DEFAULT NULL,
 	userseed VARCHAR(50) NOT NULL,
 	cp_url VARCHAR(255) NULL DEFAULT NULL,
 	cp_api VARCHAR(255) NULL DEFAULT NULL,
@@ -767,10 +769,9 @@ CREATE INDEX ix_shortgroups_name ON shortgroups(name);
 
 DROP TABLE IF EXISTS countries;
 CREATE TABLE countries (
-	id INT(11) NOT NULL AUTO_INCREMENT,
-	name VARCHAR(255) NOT NULL DEFAULT "",
-	code CHAR(2) NOT NULL DEFAULT "",
-	PRIMARY KEY (id)
+  code CHAR(2) NOT NULL DEFAULT "",
+  name VARCHAR(255) NOT NULL DEFAULT "",
+  PRIMARY KEY (name)
 ) ENGINE=MYISAM DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci AUTO_INCREMENT=1;
 
 CREATE INDEX ix_countries_name ON countries (name);

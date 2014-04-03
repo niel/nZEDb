@@ -1,8 +1,6 @@
 <?php
-if (file_exists(realpath(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'config.php'))) {
-	require_once realpath(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'config.php');
-} else {
-	require_once realpath(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'automated.config.php');
+if (file_exists(realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'config.php')) {
+	require_once realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'config.php';
 }
 
 /**
@@ -46,7 +44,11 @@ spl_autoload_register(function ($class) {
     // if the file exists, require it
     if (file_exists($file)) {
         require_once $file;
-    }
+    } else {
+		if (nZEDb_DEBUG) {
+			var_dump($file);
+		}
+	}
 });
 
 ?>

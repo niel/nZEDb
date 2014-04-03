@@ -1,7 +1,7 @@
 <?php
-
 require_once nZEDb_LIBS . "simple_html_dom.php";
-require_once nZEDb_LIB . 'utility' . DS . 'Utility.php';
+
+use nzedb\utility;
 
 /*
  * Class for inserting names/categories/md5 etc from PreDB sources into the DB, also for matching names on files / subjects.
@@ -410,7 +410,7 @@ Class PreDb
 			if (preg_match_all('/<div class="PreData ">.+?<\/div>\s*<\/div>\s*<\/div>/s', $buffer, $matches)) {
 				foreach($matches as $matches2) {
 					foreach ($matches2 as $matches3) {
-						if (preg_match('/">(?P<title>.+?)<\/a><\/div><div class="break".+?FiLTER">(?P<category>.+?)<\/a>.+?"Time">(?P<date>.+?)<\/div.+?"FilesSize">(?P<files>\d+F).*?(?P<size>\d+[KMGPT]?B).+?"Reason">(?P<reason>.*?)<\/div>/is', $matches3, $matches4)) {
+						if (preg_match('/<a href=".+?">(?P<title>.+?)<\/a><\/div><div class="break".+?FiLTER">(?P<category>.+?)<\/a>.+?"Time">(?P<date>.+?)<\/div.+?"FilesSize">(?P<files>\d+F).*?(?P<size>\d+[KMGPT]?B).+?"Reason">(?P<reason>.*?)<\/div>/is', $matches3, $matches4)) {
 
 							// Skip if too short.
 							if (strlen($matches4['title']) < 15) {
@@ -432,8 +432,8 @@ Class PreDb
 
 							if ($this->db->queryExec(
 								sprintf('
-										INSERT INTO predb (title, size, category, predate, source, md5, files, nuked, nukreason)
-										VALUES (%s, %s, %s, %s, %s, %s, %s)',
+										INSERT INTO predb (title, size, category, predate, source, md5, files, nuked, nukereason)
+										VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
 									$this->db->escapeString($matches4['title']),
 									((!isset($matches4['size']) && empty($matches4['size']))
 										? 'NULL'
@@ -485,7 +485,7 @@ Class PreDb
 								} elseif ($this->db->queryExec(
 									sprintf('
 										INSERT INTO predb (title, size, category, predate, source, md5, files)
-										VALUES (%s, %s, %s, %s, %s, %s)',
+										VALUES (%s, %s, %s, %s, %s, %s, %s)',
 										$this->db->escapeString($matches2['title']),
 										((!isset($matches2['size']) && empty($matches2['size']))
 											? 'NULL'
@@ -543,7 +543,7 @@ Class PreDb
 					}
 
 					if (preg_match('/Filesize.*<td>(?P<size>\d*)<\/td>\s*<td>.*?<\/td>\s*<td>.*?<\/td>\s*<\/tr>\s*<\/table>\s*/is', $release->description, $description)) {
-						$size = ((isset($description['size']) && !empty($description['size'])) ? $this->db->escapeString(bytesToSizeString($description['size'])) : 'NULL');
+						$size = ((isset($description['size']) && !empty($description['size'])) ? $this->db->escapeString(nzedb\utility\bytesToSizeString($description['size'])) : 'NULL');
 					}
 
 					if ($oldName !== false) {
@@ -1156,8 +1156,7 @@ Class PreDb
 
 				// To save space in the DB we do this instead of storing the full URL.
 				if ($URL === 'srrdb') {
-					$srrdb = urlencode($row['title']);
-					$URL = 'http://www.srrdb.com/download/file/' . $srrdb . '/' . $srrdb . '.nfo';
+					$URL = 'http://www.srrdb.com/download/file/' . $row['title'] . '/' . strtolower(urlencode($row['title'])) . '.nfo';
 				}
 
 				$buffer = $this->getUrl($URL);
@@ -1166,6 +1165,11 @@ Class PreDb
 					if (strlen($buffer) < 5) {
 						continue;
 					}
+
+					if ($row['nfo'] === 'srrdb' && preg_match('/You\'ve reached the daily limit/i', $buffer)) {
+						continue;
+					}
+
 					if ($nfo->addAlternateNfo($db, $buffer, $row, $nntp)) {
 						if ($this->echooutput) {
 							echo '+';
@@ -1311,7 +1315,7 @@ Class PreDb
 	 */
 	protected function getUrl($url)
 	{
-		return getUrl(
+		return nzedb\utility\getUrl(
 			$url,
 			'get',
 			'',
