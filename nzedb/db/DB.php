@@ -15,14 +15,15 @@ use nzedb\controllers\ColorCLI;
 class DB extends \PDO
 {
 	/**
-	 * @var object Instance of ColorCLI class.
-	 */
-	public $c;
-
-	/**
 	 * @var object Instance of ConsoleTools class.
 	 */
 	public $ct;
+
+	/**
+	 * @var object    Instance variable for logging object. Currently only ColorCLI supported,
+	 * but expanding for full logging with agnostic API planned.
+	 */
+	public $log;
 
 	/**
 	 * @var bool	Whether memcache is enabled.
@@ -81,13 +82,13 @@ class DB extends \PDO
 			'dbsock'		=> defined('DB_SOCKET') ? DB_SOCKET : '',
 			'dbtype'		=> defined('DB_SYSTEM') ? DB_SYSTEM : '',
 			'dbuser' 		=> defined('DB_USER') ? DB_USER : '',
-			'logger'		=> new \ColorCLI()
+			'log'			=> new \ColorCLI()
 		);
 		$this->opts = $options + $defaults;
 
 		$this->_debug = (nZEDb_DEBUG || nZEDb_LOGGING);
 		if ($this->_debug) {
-			$this->debugging = new Debugging("DB");
+			$this->debugging = new \Debugging("DB");
 		}
 
 		$this->_cli = \nzedb\utility\Utility::isCLI();
@@ -96,7 +97,7 @@ class DB extends \PDO
 			$this->dbSystem = strtolower($this->opts['dbtype']);
 		}
 
-		if (!(self::$pdo instanceof PDO)) {
+		if (!(self::$pdo instanceof \PDO)) {
 			$this->initialiseDatabase();
 		}
 
@@ -228,7 +229,7 @@ class DB extends \PDO
 			$this->debugging->start($method, $error, $severity);
 		}
 
-		echo (($this->_cli ? $this->c->error($error) . PHP_EOL : '<div class="error">' . $error . '</div>'));
+		echo (($this->_cli ? $this->log->error($error) . PHP_EOL : '<div class="error">' . $error . '</div>'));
 
 		if ($exit) {
 			exit();
@@ -266,7 +267,7 @@ class DB extends \PDO
 	 */
 	public function isInitialised()
 	{
-		return (self::$pdo instanceof PDO);
+		return (self::$pdo instanceof \PDO);
 	}
 
 	/**
@@ -372,12 +373,12 @@ class DB extends \PDO
 				} else {
 					$p = self::$pdo->prepare($query . ' RETURNING id');
 					$p->execute();
-					$r = $p->fetch(PDO::FETCH_ASSOC);
+					$r = $p->fetch(\PDO::FETCH_ASSOC);
 					return $r['id'];
 				}
 			}
 
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			// Deadlock or lock wait timeout, try 10 times.
 			if (
 				$e->errorInfo[1] == 1213 ||
@@ -408,7 +409,7 @@ class DB extends \PDO
 		try {
 			return self::$pdo->exec($query);
 
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			$this->echoError($e->getMessage(), 'Exec', 4);
 
 			if ($this->_debug) {
@@ -502,7 +503,7 @@ class DB extends \PDO
 
 		try {
 			$result = self::$pdo->query($query);
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			$this->echoError($e->getMessage(), 'queryDirect', 4);
 			if ($this->debug) {
 				$this->debugging->start("queryDirect", $query, 6);
@@ -542,15 +543,15 @@ class DB extends \PDO
 		if ($query == '') {
 			return false;
 		}
-		$mode = self::$pdo->getAttribute(PDO::ATTR_DEFAULT_FETCH_MODE);
-		if ($mode != PDO::FETCH_ASSOC) {
-			self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+		$mode = self::$pdo->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE);
+		if ($mode != \PDO::FETCH_ASSOC) {
+			self::$pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 		}
 
 		$result = $this->queryArray($query);
 
-		if ($mode != PDO::FETCH_ASSOC) {
-			self::$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+		if ($mode != \PDO::FETCH_ASSOC) {
+			self::$pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 		}
 		return $result;
 	}
@@ -581,7 +582,7 @@ class DB extends \PDO
 				$tbls = rtrim(trim($tbls),',');
 				if ($admin === false) {
 					$message = 'Optimizing tables: ' . $tbls;
-					echo $this->c->primary($message);
+					echo $this->log->primary($message);
 					if ($this->_debug) {
 						$this->debugging->start("optimise", $message, 5);
 					}
@@ -592,7 +593,7 @@ class DB extends \PDO
 					if ($type === 'analyze') {
 						if ($admin === false) {
 							$message = 'Analyzing table: ' . $table['name'];
-							echo $this->c->primary($message);
+							echo $this->log->primary($message);
 							if ($this->_debug) {
 								$this->debugging->start("optimise", $message, 5);
 							}
@@ -601,7 +602,7 @@ class DB extends \PDO
 					} else {
 						if ($admin === false) {
 							$message = 'Optimizing table: ' . $table['name'];
-							echo $this->c->primary($message);
+							echo $this->log->primary($message);
 							if ($this->_debug) {
 								$this->debugging->start("optimise", $message, 5);
 							}
@@ -642,7 +643,7 @@ class DB extends \PDO
 	 */
 	public function newtables($grpid)
 	{
-		$s = new Sites();
+		$s = new \Sites();
 		$site = $s->get();
 		$DoPartRepair = ($site->partrepair == '0') ? false : true;
 
@@ -656,7 +657,7 @@ class DB extends \PDO
 			try {
 				self::$pdo->query('SELECT * FROM ' . $grpid . '_collections LIMIT 1');
 				$old_tables = true;
-			} catch (PDOException $e) {
+			} catch (\PDOException $e) {
 				$old_tables = false;
 			}
 
@@ -679,7 +680,7 @@ class DB extends \PDO
 						if ($tblnew != '') {
 							try {
 								self::$pdo->query('ALTER TABLE ' . $tbl . ' RENAME TO ' . $tblnew);
-							} catch (PDOException $e) {
+							} catch (\PDOException $e) {
 								// table already exists
 							}
 						}
@@ -690,13 +691,13 @@ class DB extends \PDO
 			try {
 				self::$pdo->query('SELECT * FROM collections_' . $grpid . ' LIMIT 1');
 				$collections = true;
-			} catch (PDOException $e) {
+			} catch (\PDOException $e) {
 				try {
 					if ($this->queryExec('CREATE TABLE collections_' . $grpid . $like) !== false) {
 						$collections = true;
 						$this->newtables($grpid);
 					}
-				} catch (PDOException $e) {
+				} catch (\PDOException $e) {
 					return false;
 				}
 			}
@@ -710,7 +711,7 @@ class DB extends \PDO
 				try {
 					self::$pdo->query('SELECT * FROM binaries_' . $grpid . ' LIMIT 1');
 					$binaries = true;
-				} catch (PDOException $e) {
+				} catch (\PDOException $e) {
 					if ($this->queryExec('CREATE TABLE binaries_' . $grpid . $like) !== false) {
 						$binaries = true;
 						$this->newtables($grpid);
@@ -727,7 +728,7 @@ class DB extends \PDO
 				try {
 					self::$pdo->query('SELECT * FROM parts_' . $grpid . ' LIMIT 1');
 					$parts = true;
-				} catch (PDOException $e) {
+				} catch (\PDOException $e) {
 					if ($this->queryExec('CREATE TABLE parts_' . $grpid . $like) !== false) {
 						$parts = true;
 						$this->newtables($grpid);
@@ -744,7 +745,7 @@ class DB extends \PDO
 				try {
 					DB::$pdo->query('SELECT * FROM partrepair_' . $grpid . ' LIMIT 1');
 					$partrepair = true;
-				} catch (PDOException $e) {
+				} catch (\PDOException $e) {
 					if ($this->queryExec('CREATE TABLE partrepair_' . $grpid . $like) !== false) {
 						$partrepair = true;
 						$this->newtables($grpid);
@@ -853,7 +854,7 @@ class DB extends \PDO
 	{
 		try {
 			return (bool) self::$pdo->query('SELECT 1+1');
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			if ($restart == true) {
 				$this->initialiseDatabase();
 			}
@@ -878,11 +879,11 @@ class DB extends \PDO
 	{
 		try {
 			$PDOstatement = self::$pdo->prepare($query, $options);
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			if ($this->_debug) {
 				$this->debugging->start("Prepare", $e->getMessage(), 5);
 			}
-			echo $this->c->error("\n" . $e->getMessage());
+			echo $this->log->error("\n" . $e->getMessage());
 			$PDOstatement = false;
 		}
 		return $PDOstatement;
@@ -900,11 +901,11 @@ class DB extends \PDO
 		if ($attribute != '') {
 			try {
 				$result = self::$pdo->getAttribute($attribute);
-			} catch (PDOException $e) {
+			} catch (\PDOException $e) {
 				if ($this->_debug) {
 					$this->debugging->start("getAttribute", $e->getMessage(), 5);
 				}
-				echo $this->c->error("\n" . $e->getMessage());
+				echo $this->log->error("\n" . $e->getMessage());
 				$result = false;
 			}
 			return $result;
@@ -955,14 +956,14 @@ class Mcached
 	// Make a connection to memcached server.
 	public function Mcached()
 	{
-		$this->c = new ColorCLI();
+		$this->c = new \ColorCLI();
 		if (extension_loaded('memcache')) {
-			$this->m = new Memcache();
+			$this->m = new \Memcache();
 			if ($this->m->connect(MEMCACHE_HOST, MEMCACHE_PORT) == false) {
-				throw new Exception($this->c->error("\nUnable to connect to the memcached server."));
+				throw new \Exception($this->log->error("\nUnable to connect to the memcached server."));
 			}
 		} else {
-			throw new Exception($this->c->error("nExtension 'memcache' not loaded."));
+			throw new \Exception($this->log->error("nExtension 'memcache' not loaded."));
 		}
 
 		$this->expiry = MEMCACHE_EXPIRY;
