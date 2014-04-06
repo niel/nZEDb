@@ -214,6 +214,7 @@ CREATE TABLE releasecomment (
 	host VARCHAR(15) NULL,
   shared   TINYINT(1)  NOT NULL DEFAULT '0',
   shareid  VARCHAR(40) NOT NULL DEFAULT '',
+  siteid  VARCHAR(40) NOT NULL DEFAULT '',
   nzb_guid VARCHAR(32) NOT NULL DEFAULT '',
 	PRIMARY KEY (id)
 ) ENGINE=MYISAM DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci AUTO_INCREMENT=1;
@@ -799,6 +800,7 @@ CREATE TABLE sharing (
   posting        TINYINT(1)         NOT NULL DEFAULT '0',
   fetching       TINYINT(1)         NOT NULL DEFAULT '0',
   auto_enable    TINYINT(1)         NOT NULL DEFAULT '0',
+  start_position TINYINT(1)         NOT NULL DEFAULT '0',
   hide_users     TINYINT(1)         NOT NULL DEFAULT '1',
   last_article   BIGINT UNSIGNED    NOT NULL DEFAULT '0',
   max_push       MEDIUMINT UNSIGNED NOT NULL DEFAULT '40',
