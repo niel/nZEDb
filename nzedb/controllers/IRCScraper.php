@@ -1,5 +1,5 @@
 <?php
-
+require_once nZEDb_LIBS . 'Net_SmartIRC/modules/PingFix.php';
 use nzedb\db\DB;
 
 /**
@@ -104,6 +104,8 @@ class IRCScraper
 		$this->db = new DB();
 		$this->groupList = array();
 		$this->IRC = $irc;
+		// Use the PingFix module.
+		new Net_SmartIRC_module_PingFix($irc);
 		if ($debug) {
 			$this->IRC->setDebug(SMARTIRC_DEBUG_ALL);
 		}
@@ -164,7 +166,7 @@ class IRCScraper
 					'#alt.binaries.games.xbox360'          => null,
 					'#alt.binaries.sony.psp'               => null,
 					'#scnzb'                               => null,
-					'#tvnzb'                               => null
+					//'#tvnzb'                               => null
 				);
 				// Check if the user is ignoring channels.
 				if (defined('SCRAPE_IRC_EFNET_IGNORED_CHANNELS') && SCRAPE_IRC_EFNET_IGNORED_CHANNELS != '') {
@@ -202,7 +204,7 @@ class IRCScraper
 						'|' .
 						'\s+NZB:\s+http:\/\/scnzb\.eu\/' .             // scnzb
 						'|' .
-						'^\[SBINDEX\]' .                               // tvnzb
+						//'^\[SBINDEX\]' .                               // tvnzb
 						'|' .
 						'^\[(MOD|OLD|RE|UN)?NUKE\]' .                  // Nukes. various channels
 						'|' .
@@ -236,6 +238,21 @@ class IRCScraper
 				return;
 		}
 
+		$versions = array(
+			'HexChat 2.9.6 [x64] / Windows ' . rand(7,8) . ' [' . rand(2,3) . '.' . rand(0,99) .'GHz]',
+			'irssi v0.8.' . rand(10, 16) . ' - running on Linux i686',
+			'KVIrc 4.2.0',
+			'mIRC 7.32 Khaled Mardam-Bey',
+			'mIRC v6.31 Khaled Mardam-Bey',
+			'HydraIRC v0.3.165',
+			'xchat 2.8. ' . rand(6,9) . ' Ubuntu',
+			'ZNC 1.' . rand(0,2) . ' - http://znc.in',
+		);
+
+		// Change the CTCP string.
+		$this->IRC->setCtcpVersion($versions[mt_rand(0, 6)]);
+		unset($versions);
+
 		// Use real sockets instead of fsock.
 		$this->IRC->setUseSockets($socket);
 
@@ -245,8 +262,8 @@ class IRCScraper
 		// If there's a problem during connection, try to reconnect.
 		$this->IRC->setAutoRetry(true);
 
-		// If problem connecting, wait 5 seconds before reconnecting.
-		$this->IRC->setReconnectdelay(50000);
+		// If problem connecting, wait 20 seconds before reconnecting.
+		$this->IRC->setReconnectdelay(200000);
 
 		// Try 4 times before giving up.
 		$this->IRC->setAutoRetryMax(4);
@@ -314,6 +331,24 @@ class IRCScraper
 	}
 
 	/**
+	 * Check the similarity between 2 words.
+	 *
+	 * @param string $word1
+	 * @param string $word2
+	 * @param int    $similarity
+	 *
+	 * @return bool
+	 */
+	protected function checkSimilarity(&$word1, $word2, $similarity = 49)
+	{
+		similar_text($word1, $word2, $percent);
+		if ($percent > $similarity) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Check channel and poster, send to right method.
 	 *
 	 * @param object $irc
@@ -324,95 +359,98 @@ class IRCScraper
 		$channel = strtolower($data->channel);
 		$poster  = strtolower($data->nick);
 
-		switch ($poster) {
-			case 'sanctum':
-				if ($channel === '#alt.binaries.inner-sanctum') {
+		switch($channel) {
+
+			case '#alt.binaries.inner-sanctum':
+				if ($this->checkSimilarity($poster, 'sanctum')) {
 					$this->inner_sanctum($data->message);
 				}
 				break;
 
-			case 'alt-bin':
-				$this->alt_bin($data->message, $channel);
-				break;
-
-			case 'pr3':
-				if ($channel === '#pre') {
-					$this->corrupt_pre($data->message);
-				}
-				break;
-
-			case 'abflac':
-				if ($channel === '#alt.binaries.flac') {
-					$this->ab_flac($data->message);
-				}
-				break;
-
-			case 'abking':
-				if ($channel === '#alt.binaries.moovee') {
-					$this->ab_moovee($data->message);
-				}
-				break;
-
-			case 'ginger':
-				if ($channel === '#alt.binaries.erotica') {
+			case '#alt.binaries.erotica':
+				if ($this->checkSimilarity($poster, 'ginger') || $this->checkSimilarity($poster, 'g1nger')) {
 					$this->ab_erotica($data->message);
 				}
 				break;
 
-			case 'abgod':
-				if ($channel === '#alt.binaries.teevee') {
+			case '#alt.binaries.flac':
+				if ($this->checkSimilarity($poster, 'abflac')) {
+					$this->ab_flac($data->message);
+				}
+				break;
+
+			case '#alt.binaries.moovee':
+				if ($this->checkSimilarity($poster, 'abking')) {
+					$this->ab_moovee($data->message);
+				}
+				break;
+
+			case '#alt.binaries.teevee':
+				if ($this->checkSimilarity($poster, 'abgod')) {
 					$this->ab_teevee($data->message);
 				}
 				break;
 
-			case 'theannouncer':
-				if ($channel === '#pre') {
+			case '#pre':
+				if ($this->checkSimilarity($poster, 'theannouncer')) {
 					$this->zenet_pre($data->message);
+				} else if ($this->checkSimilarity($poster, 'pr3')) {
+					$this->corrupt_pre($data->message);
 				}
 				break;
 
-			case 'abqueen':
-				if ($channel === '#alt.binaries.foreign') {
+			case '#alt.binaries.foreign':
+				if ($this->checkSimilarity($poster, 'abqueen')) {
 					$this->ab_foreign($data->message);
 				}
 				break;
 
-			case 'binarybot':
-				if ($channel === '#alt.binaries.console.ps3') {
+			case '#alt.binaries.console.ps3':
+				if ($this->checkSimilarity($poster, 'binarybot')) {
 					$this->ab_console_ps3($data->message);
-				} else if ($channel === '#alt.binaries.games.nintendods') {
+				}
+				break;
+
+			case '#alt.binaries.games.nintendods':
+				if ($this->checkSimilarity($poster, 'binarybot')) {
 					$this->ab_games_nintendods($data->message);
-				} else if ($channel === '#alt.binaries.games.wii') {
+				}
+				break;
+
+			case '#alt.binaries.games.wii':
+				if ($this->checkSimilarity($poster, 'binarybot') || $this->checkSimilarity($poster, 'googlebot')) {
 					$this->ab_games_wii($data->message, $poster);
-				} else if ($channel === '#alt.binaries.games.xbox360') {
+				}
+				break;
+
+			case '#alt.binaries.games.xbox360':
+				if ($this->checkSimilarity($poster, 'binarybot') || $this->checkSimilarity($poster, 'googlebot')) {
 					$this->ab_games_xbox360($data->message, $poster);
 				}
 				break;
 
-			case 'googlebot':
-				if ($channel === '#alt.binaries.games.wii') {
-					$this->ab_games_wii($data->message, $poster);
-				} else if ($channel === '#alt.binaries.games.xbox360') {
-					$this->ab_games_xbox360($data->message, $poster);
-				} else if ($channel === '#alt.binaries.sony.psp') {
-					$this->ab_sony_psp($data->message, $poster);
+			case '#alt.binaries.sony.psp':
+				if ($this->checkSimilarity($poster, 'googlebot')) {
+					$this->ab_sony_psp($data->message);
 				}
 				break;
 
-			case 'nzbs':
-				if ($channel === '#scnzbs') {
+			case '#scnzbs':
+				if ($this->checkSimilarity($poster, 'nzbs')) {
 					$this->scnzb($data->message);
 				}
 				break;
 
-			case 'tweetie':
-				if ($channel === '#tvnzb') {
+			/*case '#tvnzb':
+				if ($this->checkSimilarity($poster, 'tweetie')) {
 					$this->tvnzb($data->message);
 				}
-				break;
+				break;*/
 
 			default:
-				break;
+				if ($this->checkSimilarity($poster, 'alt-bin')) {
+					$this->alt_bin($data->message, $channel);
+				}
 		}
 	}
 
@@ -631,7 +669,7 @@ class IRCScraper
 	protected function ab_games_wii(&$message, &$poster)
 	{
 		//A new NZB has been added: Go_Diego_Go_Great_Dinosaur_Rescue_PAL_WII-ZER0 PAL DVD5 zer0-gdggdr 93x50MB - To download this file: -sendnzb 12811
-		if ($poster === 'googlebot' && preg_match('/A\s+new\s+NZB\s+has\s+been\s+added:\s+(?P<title>.+?)\s+.+?(?P<files>\d+x\d+[KMGTP]?B)\s+-\s+To.+?file:\s+-sendnzb\s+(?P<reqid>\d+)\s*/i', $message, $matches)) {
+		if ($this->checkSimilarity($poster, 'googlebot') && preg_match('/A\s+new\s+NZB\s+has\s+been\s+added:\s+(?P<title>.+?)\s+.+?(?P<files>\d+x\d+[KMGTP]?B)\s+-\s+To.+?file:\s+-sendnzb\s+(?P<reqid>\d+)\s*/i', $message, $matches)) {
 			$matches['nuke']          = 'NUKE';
 			$this->CurPre['source']   = '#a.b.games.wii';
 			$this->CurPre['groupid']  = $this->getGroupID('alt.binaries.games.wii');
@@ -639,7 +677,7 @@ class IRCScraper
 			$this->siftMatches($matches);
 
 		//[kiczek added reason info for: Samurai_Shodown_IV_-_Amakusas_Revenge_USA_VC_NEOGEO_Wii-OneUp][VCID: 5027][Value: bad.dirname_bad.filenames_get.repack]
-		} else if ($poster === 'binarybot' && preg_match('/added\s+(nuke|reason)\s+info\s+for:\s+(?P<title>.+?)\]\[VCID:\s+(?P<reqid>\d+)\]\[Value:\s+(?P<reason>.+?)\]/i', $message, $matches)) {
+		} else if ($this->checkSimilarity($poster, 'binarybot') && preg_match('/added\s+(nuke|reason)\s+info\s+for:\s+(?P<title>.+?)\]\[VCID:\s+(?P<reqid>\d+)\]\[Value:\s+(?P<reason>.+?)\]/i', $message, $matches)) {
 			$matches['nuke']          = 'NUKE';
 			$this->CurPre['source']   = '#a.b.games.wii';
 			$this->CurPre['groupid']  = $this->getGroupID('alt.binaries.games.wii');
@@ -657,7 +695,7 @@ class IRCScraper
 	protected function ab_games_xbox360(&$message, &$poster)
 	{
 		//A new NZB has been added: South.Park.The.Stick.of.Truth.PAL.XBOX360-COMPLEX PAL DVD9 complex-south.park.sot 74x100MB - To download this file: -sendnzb 19909
-		if ($poster === 'googlebot' && preg_match('/A\s+new\s+NZB\s+has\s+been\s+added:\s+(?P<title>.+?)\s+.+?(?P<files>\d+x\d+[KMGTP]?B)\s+-\s+To.+?file:\s+-sendnzb\s+(?P<reqid>\d+)\s*/i', $message, $matches)) {
+		if ($this->checkSimilarity($poster, 'googlebot') && preg_match('/A\s+new\s+NZB\s+has\s+been\s+added:\s+(?P<title>.+?)\s+.+?(?P<files>\d+x\d+[KMGTP]?B)\s+-\s+To.+?file:\s+-sendnzb\s+(?P<reqid>\d+)\s*/i', $message, $matches)) {
 			$matches['nuke']          = 'NUKE';
 			$this->CurPre['source']   = '#a.b.games.xbox360';
 			$this->CurPre['groupid']  = $this->getGroupID('alt.binaries.games.xbox360');
@@ -665,7 +703,7 @@ class IRCScraper
 			$this->siftMatches($matches);
 
 		//[egres added nuke info for: Injustice.Gods.Among.Us.XBOX360-SWAG][GameID: 7088][Value: Y]
-		} else if ($poster === 'binarybot' && preg_match('/added\s+(nuke|reason)\s+info\s+for:\s+(?P<title>.+?)\]\[VCID:\s+(?P<reqid>\d+)\]\[Value:\s+(?P<reason>.+?)\]/i', $message, $matches)) {
+		} else if ($this->checkSimilarity($poster, 'binarybot') && preg_match('/added\s+(nuke|reason)\s+info\s+for:\s+(?P<title>.+?)\]\[VCID:\s+(?P<reqid>\d+)\]\[Value:\s+(?P<reason>.+?)\]/i', $message, $matches)) {
 			$matches['nuke']          = 'NUKE';
 			$this->CurPre['source']   = '#a.b.games.xbox360';
 			$this->CurPre['groupid']  = $this->getGroupID('alt.binaries.games.xbox360');
@@ -726,7 +764,7 @@ class IRCScraper
 	 *
 	 * @param string $message The IRC message to parse.
 	 */
-	protected function tvnzb(&$message)
+/*	protected function tvnzb(&$message)
 	{
 		//[SBINDEX] Rev.S03E02.HDTV.x264-TLA :: TV > HD :: 210.13 MB :: Aired: 31/Mar/2014 :: http://lolo.sickbeard.com/getnzb/aa10bcef235c604612dd61b0627ae25f.nzb
 		if (preg_match('/\[SBINDEX\]\s+(?P<title>.+?)\s+::\s+(?P<sbcat>.+?)\s+::\s+(?P<size>.+?)\s+::\s+Aired/i', $message, $matches)) {
@@ -736,7 +774,7 @@ class IRCScraper
 			$this->CurPre['source'] = '#tvnzb';
 			$this->siftMatches($matches);
 		}
-	}
+	}*/
 
 	/**
 	 * Gets new PRE from #Pre on zenet

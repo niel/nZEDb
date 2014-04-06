@@ -179,12 +179,8 @@ class Backfill
 
 			$this->binaries = new Binaries($this->nntp, $this->echo, $this);
 
-			if ($articles !== '') {
-				if (!is_numeric($articles)) {
-					$articles = 20000;
-				} else {
-					$articles = (int) $articles;
-				}
+			if ($articles !== '' && !is_numeric($articles)) {
+				$articles = 20000;
 			}
 
 			// Loop through groups.
@@ -271,7 +267,7 @@ class Backfill
 		$postCheck = ($articles === '' ? false : true);
 
 		// Get target post based on date or user specified number.
-		$targetpost = ($postCheck
+		$targetpost = (string)($postCheck
 			?
 				round($groupArr['first_record'] - $articles)
 			:
@@ -318,9 +314,9 @@ class Backfill
 		}
 
 		// Set first and last, moving the window by max messages.
-		$last = $groupArr['first_record'] - 1;
+		$last = (string)($groupArr['first_record'] - 1);
 		// Set the initial "chunk".
-		$first = $last - $this->binaries->messagebuffer + 1;
+		$first = (string)($last - $this->binaries->messagebuffer + 1);
 
 		// Just in case this is the last chunk we needed.
 		if ($targetpost > $first) {
@@ -372,8 +368,8 @@ class Backfill
 				$done = true;
 			} else {
 				// Keep going: set new last, new first, check for last chunk.
-				$last = $first - 1;
-				$first = $last - $this->binaries->messagebuffer + 1;
+				$last = (string)($first - 1);
+				$first = (string)($last - $this->binaries->messagebuffer + 1);
 				if ($targetpost > $first) {
 					$first = $targetpost;
 				}
@@ -449,24 +445,26 @@ class Backfill
 	{
 		// Set table names
 		$groupID = $this->groups->getIDByName($groupData['group']);
-		if ($this->tablepergroup === 1) {
-			if ($this->db->newtables($groupID) === false) {
-				$dMessage = "There is a problem creating new parts/files tables for this group.";
-				if ($this->debug) {
-					$this->debugging->start("postdate", $dMessage, 2);
-				}
+		if ($groupID !== '') {
+			if ($this->tablepergroup === 1) {
+				if ($this->db->newtables($groupID) === false) {
+					$dMessage = "There is a problem creating new parts/files tables for this group.";
+					if ($this->debug) {
+						$this->debugging->start("postdate", $dMessage, 2);
+					}
 
-				if ($this->echo) {
-					$this->c->doEcho($this->c->error($dMessage), true);
+					if ($this->echo) {
+						$this->c->doEcho($this->c->error($dMessage), true);
+					}
 				}
+				$groupA['cname'] = 'collections_' . $groupID;
+				$groupA['bname'] = 'binaries_' . $groupID;
+				$groupA['pname'] = 'parts_' . $groupID;
+			} else {
+				$groupA['cname'] = 'collections';
+				$groupA['bname'] = 'binaries';
+				$groupA['pname'] = 'parts';
 			}
-			$groupA['cname'] = 'collections_' . $groupID;
-			$groupA['bname'] = 'binaries_' . $groupID;
-			$groupA['pname'] = 'parts_' . $groupID;
-		} else {
-			$groupA['cname'] = 'collections';
-			$groupA['bname'] = 'binaries';
-			$groupA['pname'] = 'parts';
 		}
 
 		$currentPost = $post;
@@ -487,20 +485,23 @@ class Backfill
 					break;
 				}
 			} else {
-			// Try to get locally.
-				$local = $this->db->queryOneRow(
-					'SELECT c.date AS date FROM ' .
-					$groupA['cname'] .
-					' c, ' .
-					$groupA['bname'] .
-					' b, ' .
-					$groupA['pname'] .
-					' p WHERE c.id = b.collectionid AND b.id = p.binaryid AND c.groupid = ' .
-					$groupID .
-					' AND p.number = ' .
-					$currentPost .
-					' LIMIT 1'
-				);
+				$local = false;
+				if ($groupID !== '') {
+					// Try to get locally.
+					$local = $this->db->queryOneRow(
+						'SELECT c.date AS date FROM ' .
+						$groupA['cname'] .
+						' c, ' .
+						$groupA['bname'] .
+						' b, ' .
+						$groupA['pname'] .
+						' p WHERE c.id = b.collectionid AND b.id = p.binaryid AND c.groupid = ' .
+						$groupID .
+						' AND p.number = ' .
+						$currentPost .
+						' LIMIT 1'
+					);
+				}
 
 				// If the row exists return.
 				if ($local !== false) {
@@ -742,21 +743,19 @@ class Backfill
 			}
 		}
 
-		$dMessage =
-			'Determined to be article: ' .
-			number_format($upperbound) .
-			' which is ' .
-			$this->daysOld($dateofnextone) .
-			' days old (' .
-			date('r', $dateofnextone) .
-			')';
+
 		if ($this->debug) {
+			$dMessage =
+				'Determined to be article: ' .
+				number_format($upperbound) .
+				' which is ' .
+				$this->daysOld($dateofnextone) .
+				' days old (' .
+				date('r', $dateofnextone) .
+				')';
 			$this->debugging->start("daytopost", $dMessage, 5);
 		}
 
-		if ($this->echo) {
-			$this->c->doEcho($dMessage, true);
-		}
 		return $upperbound;
 	}
 

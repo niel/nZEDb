@@ -1,7 +1,7 @@
 <?php
 namespace nzedb\db;
 
-use nzedb\controllers\ColorCLI;
+//use nzedb\controllers\ColorCLI;
 
 /**
  * Class for handling connection to database (MySQL or PostgreSQL) using PDO.
@@ -48,7 +48,7 @@ class DB extends \PDO
 	/**
 	 * @var string Lower-cased name of DBMS in use.
 	 */
-	private $dbSystem;
+	private $DbSystem;
 
 	/**
 	 * @var string Version of the Db server.
@@ -94,7 +94,7 @@ class DB extends \PDO
 		$this->_cli = \nzedb\utility\Utility::isCLI();
 
 		if (!empty($this->opts['dbtype'])) {
-			$this->dbSystem = strtolower($this->opts['dbtype']);
+			$this->DbSystem = strtolower($this->opts['dbtype']);
 		}
 
 		if (!(self::$pdo instanceof \PDO)) {
@@ -107,6 +107,7 @@ class DB extends \PDO
 			$this->memcached = false;
 		}
 		$this->ct = $this->opts['ct'];
+		$this->log = $this->opts['log'];
 
 		if ($this->opts['checkVersion']) {
 			$this->fetchDbVersion();
@@ -146,22 +147,22 @@ class DB extends \PDO
 	 */
 	private function initialiseDatabase()
 	{
-		if ($this->dbSystem === 'mysql') {
+		if ($this->DbSystem === 'mysql') {
 			if (!empty($this->opts['dbsock'])) {
-				$dsn = $this->dbSystem . ':unix_socket=' . $this->opts['dbsock'];
+				$dsn = $this->DbSystem . ':unix_socket=' . $this->opts['dbsock'];
 			} else {
-				$dsn = $this->dbSystem . ':host=' . $this->opts['dbhost'];
+				$dsn = $this->DbSystem . ':host=' . $this->opts['dbhost'];
 				if (!empty($this->opts['dbport'])) {
 					$dsn .= ';port=' . $this->opts['dbport'];
 				}
 			}
 		} else {
-			$dsn = $this->dbSystem . ':host=' . $this->opts['dbhost'] . ';dbname=' . $this->opts['dbname'];
+			$dsn = $this->DbSystem . ':host=' . $this->opts['dbhost'] . ';dbname=' . $this->opts['dbname'];
 		}
 		$dsn .= ';charset=utf8';
 
 		$options = array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION, \PDO::ATTR_TIMEOUT => 180);
-		if ($this->dbSystem === 'mysql') {
+		if ($this->DbSystem === 'mysql') {
 			$options[\PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES utf8";
 			$options[\PDO::MYSQL_ATTR_LOCAL_INFILE] = true;
 		}
@@ -239,9 +240,9 @@ class DB extends \PDO
 	/**
 	 * @return string mysql or pgsql.
 	 */
-	public function dbSystem()
+	public function DbSystem()
 	{
-		return $this->dbSystem;
+		return $this->DbSystem;
 	}
 
 	/**
@@ -366,7 +367,7 @@ class DB extends \PDO
 				$run->execute();
 				return $run;
 			} else {
-				if ($this->dbSystem === 'mysql') {
+				if ($this->DbSystem === 'mysql') {
 					$ins = self::$pdo->prepare($query);
 					$ins->execute();
 					return self::$pdo->lastInsertId();
@@ -567,7 +568,7 @@ class DB extends \PDO
 	public function optimise($admin = false, $type = '')
 	{
 		$tablecnt = 0;
-		if ($this->dbSystem === 'mysql') {
+		if ($this->DbSystem === 'mysql') {
 			if ($type === 'true' || $type === 'full' || $type === 'analyze') {
 				$alltables = $this->query('SHOW TABLE STATUS');
 			} else {
@@ -617,7 +618,7 @@ class DB extends \PDO
 			if ($type !== 'analyze') {
 				$this->queryExec('FLUSH TABLES');
 			}
-		} else if ($this->dbSystem === 'pgsql') {
+		} else if ($this->DbSystem === 'pgsql') {
 			$alltables = $this->query("SELECT table_name as name FROM information_schema.tables WHERE table_schema = 'public'");
 			$tablecnt = count($alltables);
 			foreach ($alltables as $table) {
@@ -649,7 +650,7 @@ class DB extends \PDO
 
 		if (!is_null($grpid) && is_numeric($grpid)) {
 			$binaries = $parts = $collections = $partrepair = false;
-			if ($this->dbSystem === 'pgsql') {
+			if ($this->DbSystem === 'pgsql') {
 				$like = ' (LIKE collections INCLUDING ALL)';
 			} else {
 				$like = ' LIKE collections';
@@ -703,7 +704,7 @@ class DB extends \PDO
 			}
 
 			if ($collections === true) {
-				if ($this->dbSystem === 'pgsql') {
+				if ($this->DbSystem === 'pgsql') {
 					$like = ' (LIKE binaries INCLUDING ALL)';
 				} else {
 					$like = ' LIKE binaries';
@@ -720,7 +721,7 @@ class DB extends \PDO
 			}
 
 			if ($binaries === true) {
-				if ($this->dbSystem === 'pgsql') {
+				if ($this->DbSystem === 'pgsql') {
 					$like = ' (LIKE parts INCLUDING ALL)';
 				} else {
 					$like = ' LIKE parts';
@@ -737,7 +738,7 @@ class DB extends \PDO
 			}
 
 			if ($DoPartRepair === true && $parts === true) {
-				if ($this->dbSystem === 'pgsql') {
+				if ($this->DbSystem === 'pgsql') {
 					$like = ' (LIKE partrepair INCLUDING ALL)';
 				} else {
 					$like = ' LIKE partrepair';
@@ -802,7 +803,7 @@ class DB extends \PDO
 	 */
 	public function from_unixtime($utime)
 	{
-		if ($this->dbSystem === 'mysql') {
+		if ($this->DbSystem === 'mysql') {
 			return 'FROM_UNIXTIME(' . $utime . ')';
 		} else {
 			return 'TO_TIMESTAMP(' . $utime . ')::TIMESTAMP';
@@ -818,6 +819,26 @@ class DB extends \PDO
 	public function unix_timestamp($date)
 	{
 		return strtotime($date);
+	}
+
+	/**
+	 * Get a string for MySQL or PgSql with a column name in between
+	 * MySQL: UNIX_TIMESTAMP(column_name) AS outputName
+	 * PgSQL: EXTRACT('EPOCH' FROM column_name)::INT AS outputName;
+	 *
+	 * @param string $column     The datetime column.
+	 * @param string $outputName The name to store the SQL data into. (the word after AS)
+	 *
+	 * @return string
+	 */
+	public function unix_timestamp_column($column, $outputName = 'unix_time')
+	{
+		return ($this->DbSystem === 'mysql'
+			?
+				'UNIX_TIMESTAMP(' . $column . ') AS ' . $outputName
+			:
+				"EXTRACT('EPOCH' FROM " . $column . ')::INT AS ' . $outputName
+		);
 	}
 
 	/**
@@ -953,22 +974,36 @@ class DB extends \PDO
 // Class for caching queries into RAM using memcache.
 class Mcached
 {
+	public $log;
+
+	private $compression;
+
+	private $expiry;
+
+	private $memcache;
+
 	// Make a connection to memcached server.
-	public function Mcached()
+	public function __construct(array $options = array())
 	{
-		$this->c = new \ColorCLI();
+		$defaults = array(
+			'log'	=> new \ColorCLI(),
+		);
+		$options += $defaults;
+
+		$this->log = $options['log'];
+
 		if (extension_loaded('memcache')) {
-			$this->m = new \Memcache();
-			if ($this->m->connect(MEMCACHE_HOST, MEMCACHE_PORT) == false) {
-				throw new \Exception($this->log->error("\nUnable to connect to the memcached server."));
+			$this->memcache = new \Memcache();
+			if ($this->memcache->connect(MEMCACHE_HOST, MEMCACHE_PORT) === false) {
+				throw new \Exception($this->log->error("\nUnable to connect to the memcache server."));
 			}
 		} else {
 			throw new \Exception($this->log->error("nExtension 'memcache' not loaded."));
 		}
 
 		$this->expiry = MEMCACHE_EXPIRY;
-
 		$this->compression = MEMCACHE_COMPRESSED;
+
 		if (defined('MEMCACHE_COMPRESSION')) {
 			if (MEMCACHE_COMPRESSION === false) {
 				$this->compression = false;
@@ -985,30 +1020,30 @@ class Mcached
 	// Return some stats on the server.
 	public function Server_Stats()
 	{
-		return $this->m->getExtendedStats();
+		return $this->memcache->getExtendedStats();
 	}
 
 	// Flush all the data on the server.
 	public function Flush()
 	{
-		return $this->m->flush();
+		return $this->memcache->flush();
 	}
 
 	// Add a query to memcached server.
 	public function add($query, $result)
 	{
-		return $this->m->add($this->key($query), $result, $this->compression, $this->expiry);
+		return $this->memcache->add($this->key($query), $result, $this->compression, $this->expiry);
 	}
 
 	// Delete a query on the memcached server.
 	public function delete($query)
 	{
-		return $this->m->delete($this->key($query));
+		return $this->memcache->delete($this->key($query));
 	}
 
 	// Retrieve a query from the memcached server. Stores the query if not found.
 	public function get($query)
 	{
-		return $this->m->get($this->key($query));
+		return $this->memcache->get($this->key($query));
 	}
 }
