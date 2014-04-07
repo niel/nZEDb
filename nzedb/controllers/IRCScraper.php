@@ -287,6 +287,8 @@ class IRCScraper extends IRCClient
 
 		$this->db->ping(true);
 
+		$this->db->ping(true);
+
 		$this->db->queryExec(
 			sprintf(
 				$query,
