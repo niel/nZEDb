@@ -897,6 +897,8 @@ class IRCScraper
 
 		$query .= '%s, %s)';
 
+		$this->db->ping(true);
+
 		$this->db->queryExec(
 			sprintf(
 				$query,
