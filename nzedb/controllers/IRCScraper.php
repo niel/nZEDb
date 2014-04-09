@@ -172,9 +172,9 @@ class IRCScraper
 				if (defined('SCRAPE_IRC_EFNET_IGNORED_CHANNELS') && SCRAPE_IRC_EFNET_IGNORED_CHANNELS != '') {
 					$ignored = explode(',', SCRAPE_IRC_EFNET_IGNORED_CHANNELS);
 					$newList = array();
-					foreach($channelList as $channel => $password) {
+					foreach($channelList as $channel => $chanpass) {
 						if (!in_array($channel, $ignored)) {
-							$newList[$channel] = $password;
+							$newList[$channel] = $chanpass;
 						}
 					}
 					if (empty($newList)) {
@@ -943,6 +943,8 @@ class IRCScraper
 
 		$query .= 'title = '      . $this->db->escapeString($this->CurPre['title']);
 		$query .= ' WHERE md5 = ' . $this->CurPre['md5'];
+
+		$this->db->ping(true);
 
 		$this->db->queryExec($query);
 
