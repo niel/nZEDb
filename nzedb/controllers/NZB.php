@@ -8,7 +8,6 @@ class NZB
 {
 	/**
 	 * Instance of class site.
-	 *
 	 * @var object
 	 * @access private
 	 */
@@ -16,7 +15,6 @@ class NZB
 
 	/**
 	 * Site settings.
-	 *
 	 * @var object
 	 * @access private
 	 */
@@ -24,7 +22,6 @@ class NZB
 
 	/**
 	 * Determines if the site setting table per group is enabled.
-	 *
 	 * @var int
 	 * @access private
 	 */
@@ -33,18 +30,21 @@ class NZB
 	/**
 	 * Group ID when writing NZBs.
 	 * @var int
+	 * @access protected
 	 */
 	protected $groupID;
 
 	/**
 	 * Instance of class db.
 	 * @var nzedb\db\DB
+	 * @access protected
 	 */
 	protected $db;
 
 	/**
 	 * Date when writing NZBs.
 	 * @var string
+	 * @access protected
 	 */
 	protected $writeDate;
 
@@ -76,6 +76,8 @@ class NZB
 	 * @param nzedb\db\DB $db
 	 * @param string $date
 	 * @param int $groupID
+	 *
+	 * @access public
 	 */
 	public function initiateForWrite($db, $date, $groupID)
 	{
@@ -99,6 +101,8 @@ class NZB
 
 	/**
 	 * Clean up class vars when done writing NZB's.
+	 *
+	 * @access public
 	 */
 	public function cleanForWrite()
 	{
@@ -277,21 +281,16 @@ class NZB
 	/**
 	 * Determine is an NZB exists, returning the path+filename, if not return false.
 	 *
-	 * @param string $releaseGuid   The guid of the release.
-	 * @param int    $levelsToSplit How many sub-paths the folder will be in. (optional)
+	 * @param  string $releaseGuid              The guid of the release.
 	 *
-	 * @return bool   If false.
-	 * @return string Path+file name of the nzb.
+	 * @return bool|string On success: (string) Path+file name of the nzb.
+	 *                     On failure: (bool)   False.
 	 *
 	 * @access public
 	 */
-	public function NZBPath($releaseGuid, $levelsToSplit=0)
+	public function NZBPath($releaseGuid)
 	{
-		if ($levelsToSplit === 0) {
-			$levelsToSplit = $this->site->nzbsplitlevel;
-		}
-
-		$nzbFile = $this->getNZBPath($releaseGuid, $levelsToSplit);
+		$nzbFile = $this->getNZBPath($releaseGuid);
 		return !is_file($nzbFile) ? false : $nzbFile;
 	}
 
