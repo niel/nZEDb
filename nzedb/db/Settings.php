@@ -33,8 +33,7 @@ class Settings extends DB
 	{
 		parent::__construct($options);
 		$result = parent::exec("describe site", true);
-		$this->table = ($result === false || empty($result)) ? 'settings' : 'site';
-
+		$this->table = ($result === false) ? 'settings' : 'site';
 		$this->setCovers();
 
 		return self::$pdo;
@@ -56,7 +55,7 @@ class Settings extends DB
 	public function getSetting ($options = array())
 	{
 		if (!is_array($options)) {
-			$options = ['setting' => $options];
+			$options = ['name' => $options];
 		}
 		$defaults = array(
 			'section'    => '',
@@ -64,6 +63,7 @@ class Settings extends DB
 			'name'       => null,
 		);
 		$options += $defaults;
+
 		if ($this->table == 'settings') {
 			$result = $this->_getFromSettings($options);
 		} else {
@@ -123,18 +123,15 @@ class Settings extends DB
 
 	protected function _getFromSites ($options)
 	{
-		$results = array();
-		$sql     = 'SELECT value FROM site ';
-		if (!empty($options['name'])) {
-			$sql .= "WHERE setting = '{$options['name']}'";
+		$setting = empty($options['setting']) ? $options['name'] : $options['setting'];
+		$sql = 'SELECT value FROM site ';
+		if (!empty($setting)) {
+			$sql .= "WHERE setting = '$setting'";
 		}
 
 		$result = $this->queryOneRow($sql);
-		if ($result !== false) {
-			$results['value'] = $row['value'];
-		}
 
-		return $results['value'];
+		return $result['value'];
 	}
 }
 

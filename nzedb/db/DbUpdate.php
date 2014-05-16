@@ -87,7 +87,7 @@ class DbUpdate
 	{
 		$defaults = array(
 			'backup'	=> true,
-			'db'		=> new \nzedb\db\DB(),
+			'db'		=> new \nzedb\db\Settings(),
 			'logger'	=> new \ColorCLI(),
 		);
 		$options += $defaults;
@@ -96,6 +96,12 @@ class DbUpdate
 		$this->backup	= $options['backup'];
 		$this->db		= $options['db'];
 		$this->log		= $options['logger'];
+
+		if (is_a($this->db, 'Settings')) {
+			$this->settings =& $this->db;
+		} else {
+			$this->settings = new Settings();
+		}
 
 		$this->_DbSystem = strtolower($this->db->dbSystem());
 	}
@@ -111,7 +117,7 @@ class DbUpdate
 		$options += $defaults;
 
 		$files = empty($options['files']) ? \nzedb\utility\Utility::getDirFiles($options) : $options['files'];
-		natsort($files, SORT_NATURAL);
+		natsort($files);
 		$sql = 'LOAD DATA INFILE "%s" IGNORE INTO TABLE `%s` FIELDS TERMINATED BY "\t" OPTIONALLY ENCLOSED BY "\"" IGNORE 1 LINES (%s)';
 		foreach ($files as $file) {
 			echo "File: $file\n";
@@ -206,10 +212,9 @@ class DbUpdate
 		);
 		$options += $defaults;
 
-		$this->_useSettings();
-		$currentVersion = $this->settings->getSetting('sqlpatch');
+		$currentVersion = $this->settings->getSetting(['setting' => 'sqlpatch']);
 		if (!is_numeric($currentVersion)) {
-			exit("Bad sqlpatch value!!\n");
+			exit("Bad sqlpatch value: '$currentVersion'\n");
 		}
 
 		$files = empty($options['files']) ? \nzedb\utility\Utility::getDirFiles($options) : $options['files'];
@@ -228,11 +233,10 @@ class DbUpdate
 				if (preg_match($options['regex'], str_replace('\\', '/', $file), $matches)) {
 						$patch = (integer)$matches['patch'];
 						$setPatch = true;
-// Removing the old check from active code to flush out any left over edge case bugs.
-//				} else if (preg_match("/UPDATE `?site`? SET `?value`? = '?(?P<patch>\d+)'? WHERE `?setting`? = 'sqlpatch'/i", $patch, $matches)) {
-//					$patch = (integer)$matches['patch'];
+				} else if (preg_match("/UPDATE `?site`? SET `?value`? = '?(?P<patch>\d+)'? WHERE `?setting`? = 'sqlpatch'/i", $patch, $matches)) {
+					$patch = (integer)$matches['patch'];
 				} else {
-					throw new \RuntimeException("File ($file) has no recognised patch number, stopping!!\nYou need help with this, go ask in IRC #nZEDb");
+					throw new \RuntimeException("No patch information available, stopping!!");
 				}
 
 				if ($patch > $currentVersion) {
@@ -367,13 +371,6 @@ class DbUpdate
 
 		system("$PHP " . nZEDb_MISC . 'testing' . DS .'DB' . DS . $this->_DbSystem . 'dump_tables.php db dump');
 		$this->backedup = true;
-	}
-
-	protected function _useSettings(Sites $object = null)
-	{
-		if ($this->settings === null) {
-			$this->settings = (empty($object)) ? new Settings() : $object;
-		}
 	}
 }
 
