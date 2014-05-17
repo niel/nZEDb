@@ -6,9 +6,17 @@ New updates are grouped by person, at the top of the file.
 ***Please run .../nzedb/build/_runonce/relocateOldDirectoryContents.php to move all of your old files into the new folder names***
 ***moved smarty path, please run sudo chmod -R 777 smarty/templates_c/***
 
+2014-05-17 bart39
+	* Fix: regex error
+2014-05-17 niel
+	* Fix: Pre-commit exits early if new patch checking runs into a problem.
+	* Chg: Making covers' constant truly default to .../resources/covers.
+	  Users with older installs should consider moving their covers from .../www/covers .
 2014-05-16 ruhllatio
 	* Add: PreDB FT Match to fixReleaseNames and tmux
 2014-05-16 bart39
+	* Chg: Refactor predb stage 1 NB: new table will be created as MYISAM due to fulltext search,
+	if you wish to alter to InnoDB you must be on mysql 5.6+
 	* Chg: Regex improvements
 	* Chg: cross-posted requestid checks
 	* Chg: Refactor tmux variables for ircscraper/sharing windows
