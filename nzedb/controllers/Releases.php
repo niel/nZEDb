@@ -2224,7 +2224,7 @@ class Releases
 						$requestID = 0;
 					}
 
-					if ($requestID === 0) {
+					if ($requestID == 0) {
 						$this->db->queryExec(
 							sprintf('
 								UPDATE releases
