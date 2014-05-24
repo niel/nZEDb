@@ -6,6 +6,31 @@ New updates are grouped by person, at the top of the file.
 ***Please run .../nzedb/build/_runonce/relocateOldDirectoryContents.php to move all of your old files into the new folder names***
 ***moved smarty path, please run sudo chmod -R 777 smarty/templates_c/***
 
+2014-05-23 bart39
+	* Chg: Don't display movie with an imdbid of 0000000
+2014-05-23 DariusIII
+	* Chg: Change the way/text the grabnzb disabled message is displayed
+2014-05-23 kevin
+	* Fix: Typo in releases.php (5c is 5b).
+	* Add: Limit on local requestid (make things quicker).
+	* Fix: Empty groupid in requestid.
+	* Fix: Fix/Refactor RequestID class.
+	* Fix: Update schema sqlpatch to 226.
+	* Fix: Wrong usage of _isConnected()
+	* Chg: Use _isConnected
+	* Add: Loop in NNTP decompression to wait for the server to return data on possible terminator (should help with "msgs is not array").
+	* Chg: Use stream_socket_shutdown instead of fclose when closing the stream socket client on NNTP (faster).
+	* Chg: Don't use feof on _isConnected in NNTP for certain uses (feof can return false even if the socket is still open).
+2014-05-21 ruhllatio
+	* Chg: Class RequestID part one
+	* Fix: FTS result sizes in PreDB FT exceeding limits
+2014-05-21 bart39
+	* Upd: test gitbot again
+	* Fix: fix releases stage 4 / request id threaded / non threaded handling of requestid matching
+2014-05-21 kevin
+	* Upd: Update rarinfo to newest (*Improves handling of corrupt RAR 5.0 archives*).
+2014-05-20 Bart39
+	* Fix: Releases stage 5b/5c requestid lookups
 2014-05-20 ruhllatio
 	* Fix:  PreDB FT Match in fixReleaseNames should actually update searched now
 2014-05-20 Bart39
