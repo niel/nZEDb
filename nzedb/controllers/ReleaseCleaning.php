@@ -12,6 +12,112 @@ class ReleaseCleaning
 	public $groupName = '';
 	public $size = '';
 	public $fromName = '';
+	public $groupMap = array(
+			'alt.binaries.0day.stuffz' => '_0daystuffz',
+			'alt.binaries.3d' => '_3d',
+			'alt.binaries.anime' => 'anime',
+			'alt.binaries.ath' => 'ath',
+			'alt.binaries.audio.warez' => 'audio_warez',
+			'alt.binaries.b4e' => 'b4e',
+			'alt.binaries.barbarella' => 'barbarella',
+			'alt.binaries.big' => 'big',
+			'alt.binaries.bloaf' => 'bloaf',
+			'alt.binaries.blu-ray' => 'blu_ray',
+			'alt.binaries.boneless' => 'boneless',
+			'alt.binaries.british.drama' => 'british_drama',
+			'alt.binaries.bungabunga' => 'bungabunga',
+			'alt.binaries.cavebox' => 'cavebox',
+			'alt.binaries.cats' => 'cats',
+			'alt.binaries.cbt' => 'cbt',
+			'alt.binaries.cbts' => 'cbts',
+			'alt.binaries.cd.image' => 'cd_image',
+			'alt.binaries.cd.lossless' => 'cd_lossless',
+			'alt.binaries.chello' => 'chello',
+			'alt.binaries.classic.tv.shows' => 'classic_tv_shows',
+			'alt.binaries.comics' => 'comics',
+			'alt.binaries.comics.dcp' => 'comics_dcp',
+			'alt.binaries.comp' => 'comp',
+			'alt.binaries.cores' => 'cores',
+			'alt.binaries.console.ps3' => 'console_ps3',
+			'alt.binaries.dc' => 'dc',
+			'alt.binaries.divx.french' => 'divx_french',
+			'alt.binaries.documentaries' => 'documentaries',
+			'alt.binaries.dvd' => 'dvd',
+			'alt.binaries.dvd.movies' => 'dvd_movies',
+			'alt.binaries.dvdr' => 'dvdr',
+			'alt.binaries.dvd-german' => 'dvd_german',
+			'alt.binaries.dvd-r' => 'dvd_r',
+			'alt.binaries.ebook' => 'ebook',
+			'alt.binaries.e-book' => 'e_book',
+			'alt.binaries.e-book.flood' => 'e_book_flood',
+			'alt.binaries.e-book.magazines' => 'ebook_magazines',
+			'alt.binaries.e-book.technical' => 'ebook_technical',
+			'alt.binaries.e-book.rpg' => 'e_book_rpg',
+			'alt.binaries.erotica' => 'erotica',
+			'alt.binaries.etc' => 'etc',
+			'alt.binaries.ftn' => 'ftn',
+			'alt.binaries.fz' => 'fz',
+			'alt.binaries.game' => 'game',
+			'alt.binaries.games' => 'games',
+			'alt.binaries.games.dox' => 'games_dox',
+			'alt.binaries.games.xbox360' => 'games_xbox360',
+			'alt.binaries.german.movies' => 'german_movies',
+			'alt.binaries.ghosts' => 'ghosts',
+			'alt.binaries.hdtv' => 'hdtv',
+			'alt.binaries.hdtv.x264' => 'hdtv_x264',
+			'alt.binaries.highspeed' => 'highspeed',
+			'alt.binaries.inner-sanctum' => 'inner_sanctum',
+			'alt.binaries.mojo' => 'mojo',
+			'alt.binaries.mom' => 'mom',
+			'alt.binaries.moovee' => 'moovee',
+			'alt.binaries.movies' => 'movies',
+			'alt.binaries.movies.divx' => 'movies_divx',
+			'alt.binaries.movies.x264' => 'movies_x264',
+			'alt.binaries.mp3' => 'mp3',
+			'alt.binaries.mp3.complete_cd' => 'mp3_complete_cd',
+			'alt.binaries.mp3.full_albums' => 'mp3_full_albums',
+			'alt.binaries.multimedia' => 'multimedia',
+			'alt.binaries.multimedia.anime' => 'multimedia_anime',
+			'alt.binaries.multimedia.anime.highspeed' => 'multimedia_anime_highspeed',
+			'alt.binaries.multimedia.documentaries' => 'multimedia_documentaries',
+			'alt.binaries.multimedia.scifi' => 'multimedia_scifi',
+			'alt.binaries.music' => 'music',
+			'alt.binaries.music.mp3' => 'music_mp3',
+			'alt.binaries.multimedia.vintage-film.pre-1960' => 'multimedia_vintage_film_pre_1960',
+			'alt.binaries.nl' => 'nl',
+			'alt.binaries.pictures.erotica.anime' => 'pictures_erotica_anime',
+			'alt.binaries.ps3' => 'ps3',
+			'alt.binaries.series.tv.french' => 'series_tv_french',
+			'alt.binaries.sony.psp' => 'sony_psp',
+			'alt.binaries.sound.mp3' => 'sound_mp3',
+			'alt.binaries.sound.mp3.complete_cd' => 'sound_mp3_complete_cd',
+			'alt.binaries.sounds.flac' => 'sounds_flac',
+			'alt.binaries.sounds.lossless' => 'sounds_lossless',
+			'alt.binaries.sounds.mp3' => 'sounds_mp3',
+			'alt.binaries.sounds.mp3.complete_cd' => 'sounds_mp3_complete_cd',
+			'alt.binaries.sounds.mp3.dance' => 'sounds_mp3_dance',
+			'alt.binaries.teevee' => 'teevee',
+			'alt.binaries.test' => 'test',
+			'alt.binaries.town' => 'town',
+			'alt.binaries.town.cine' => 'town_cine',
+			'alt.binaries.town.xxx' => 'town_xxx',
+			'alt.binaries.tun' => 'tun',
+			'alt.binaries.tv' => 'tv',
+			'alt.binaries.tvseries' => 'tvseries',
+			'alt.binaries.games.wii' => 'games_wii',
+			'alt.binaries.tv.deutsch' => 'tv_deutsch',
+			'alt.binaries.u4e' => 'u4e',
+			'alt.binaries.u-4all' => 'u_4all',
+			'alt.binaries.warez' => 'warez',
+			'alt.binaries.warez.0-day' => 'warez_0_day',
+			'alt.binaries.wii' => 'wii',
+			'alt.binaries.wii.gamez' => 'wii_gamez',
+			'alt.binaries.worms' => 'worms',
+			'alt.binaries.x' => 'x',
+			'alt.binaries.x264' => 'x264',
+			'alt.binaries.xbox360' => 'xbox360',
+			'dk.binaer.tv' => 'dk_tv',
+		);
 
 	/**
 	 *
@@ -105,6 +211,7 @@ class ReleaseCleaning
 		if (preg_match('/www\.town\.ag/i', $this->subject)) {
 			return $this->generic_town();
 		}
+/*
 		switch ($groupName) {
 			case 'alt.binaries.0day.stuffz':
 				return $this->_0daystuffz();
@@ -319,6 +426,9 @@ class ReleaseCleaning
 			default:
 				return $this->generic();
 		}
+*/
+		$method = array_key_exists($groupName, $this->groupMap) ? $this->groupMap[$groupName] : 'generic';
+		return $this->$method();
 	}
 
 	public function _0daystuffz()
