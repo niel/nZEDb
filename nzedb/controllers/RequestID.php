@@ -101,7 +101,7 @@ class RequestID
 	public function __construct($echoOutput = false)
 	{
 		$this->echoOutput = ($echoOutput && nZEDb_ECHOCLI);
-		$this->category = new Category();
+		$this->category = new Categorize();
 		$this->db = new nzedb\db\DB();
 		$this->consoleTools = new ConsoleTools();
 		$this->colorCLI = new ColorCLI();
@@ -327,12 +327,10 @@ class RequestID
 		if ($dupeCheck === false) {
 			$this->preDbID = $this->db->queryInsert(
 				sprintf("
-					INSERT INTO predb (title, source, md5, sha1, requestid, groupid, predate)
-					VALUES (%s, %s, %s, %s, %s, %d, NOW())",
+					INSERT INTO predb (title, source, requestid, groupid, predate)
+					VALUES (%s, %s, %d, %d, NOW())",
 					$this->db->escapeString($this->newTitle),
 					$this->db->escapeString('requestWEB'),
-					$this->db->escapeString(md5($this->newTitle)),
-					$this->db->escapeString(sha1($this->newTitle)),
 					$this->requestID,
 					$this->result['groupid']
 				)

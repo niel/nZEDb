@@ -6,6 +6,42 @@ New updates are grouped by person, at the top of the file.
 ***Please run .../nzedb/build/_runonce/relocateOldDirectoryContents.php to move all of your old files into the new folder names***
 ***moved smarty path, please run sudo chmod -R 777 smarty/templates_c/***
 
+2014-05-28 bart39
+	* Chg: Don't display movie info if imdbid = 0000000.
+2014-05-28 ruhllatio
+	* Fix: 3DS categorization (now in NDS cat) and Amazon post processing
+	* Chg: Better Amazon lookup support for Console releases
+	* Add: Console categorization for PSX/PS2 titles to Other
+	* Chg: Categorization for some PC Games newsgroups
+	* Add: Account for Amazon Console titles that have the platform name at the end of the title
+2014-05-27 bart39
+	* Chg: Add unique index for predb title to avoid dupes.
+2014-05-27 ruhllatio
+	* Add: Categorization for GameCube titles that aren't WiiWare (Console->Other instead of Misc->Other)
+	* Fix: Add Gamecube Amazon lookup platform fix
+	* Chg: NGC platform prep for lookup
+2014-05-26 bart39
+	* Chg: update schema to match last patch
+	* Chg: Disable update_predb_hashes and update_predb_md5 scripts as they are now defunct.
+	* Chg: Refactor PreDB final stage - remove md5/sha1 from predb table.
+	* Fix: fix issue with trigger causing duplicates
+2014-05-26 NZBmets
+	* Upd: TMUX Powerline uspsetting segment to handle IPv6 and proper IPv4 parsing
+2014-05-25 ruhllatio
+	* Fix: Remove no longer existing foreign check from Movie PP
+2014-05-25 bart39
+	* Chg: Only reset release details if the category changes (requestid.php)
+	* Chg: Categorize against the cleaned searchname instead of usenet subject
+	* Add: Check if clean searchname matches predb filename
+	* Chg: Regex additions / fixes
+	* Chg: Only reset release details if the category changes
+	* Chg: Move declaration of $this->category to constructor
+	* Chg: Check cleaned searchname against predb title or filename as release is created
+	* Fix: Typo (cleansubject is title)
+2014-05-25 kevin
+	* Chg: Cleanup/fixes in Categorize.
+	* Chg: Move categorization functions to their own class.
+	* Chg: Drop multiple language categorization due to lack of maintainers.
 2014-05-24 kevin
 	* Fix: Potential fix for "Unitialized string offset 0" on NFO.
 	* Fix: Missing opening tags in NZBGet XML-RPC.
