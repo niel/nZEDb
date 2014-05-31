@@ -7,6 +7,12 @@ use nzedb\db\DB;
 class Console
 {
 
+	const REQID_NONE   = -3; // The Request ID was not found locally or via web lookup.
+	const REQID_ZERO   = -2; // The Request ID was 0.
+	const REQID_NOLL   = -1; // Request ID was not found via local lookup.
+	const CONS_UPROC  =   0; // Release has not been processed.
+	const REQID_FOUND  =  1; // Request ID found and release was updated.
+
 	function __construct($echooutput = false)
 	{
 		$this->echooutput = ($echooutput && nZEDb_ECHOCLI);
@@ -323,6 +329,9 @@ class Console
 		if (preg_match('/^XBOX360$/i', $gameInfo['platform'])) {
 			$gameInfo['platform'] = str_replace('XBOX360', 'Xbox 360', $gameInfo['platform']);
 		} // baseline single quote
+		if (preg_match('/^XBOXONE$/i', $gameInfo['platform'])) {
+			$gameInfo['platform'] = str_replace('XBOXONE', 'Xbox One', $gameInfo['platform']);
+		} // baseline single quote
 		if (preg_match('/^NDS$/i', $gameInfo['platform'])) {
 			$gameInfo['platform'] = str_replace('NDS', 'Nintendo DS', $gameInfo['platform']);
 		} // baseline single quote
@@ -633,11 +642,12 @@ class Console
 		$result = array();
 
 		// Get name of the game from name of release.
-		preg_match('/^(.+((abgx360EFNet|EFNet\sFULL|FULL\sabgxEFNet|abgx\sFULL|abgxbox360EFNet)\s|illuminatenboard\sorg|\(\d+\)))?(?P<title>.*?)[\.\-_ \:](v\.?\d\.\d|PAL|NTSC|EUR|USA|JP|ASIA|JAP|JPN|AUS|MULTI\.?5|MULTI\.?4|MULTI\.?3|PATCHED|FULLDVD|DVD5|DVD9|DVDRIP|PROPER|REPACK|RETAIL|DEMO|DISTRIBUTION|REGIONFREE|\.RF\.?|READ\.?NFO|NFOFIX|PS2|PS3|PSP|WII|X\-?BOX|XBLA|X360|3DS|NDS|N64|NGC)/i', $releasename, $matches);
+		preg_match('/^(.+((abgx360EFNet|EFNet\sFULL|FULL\sabgxEFNet|abgx\sFULL|abgxbox360EFNet)\s|illuminatenboard\sorg|Place2home.net|\(\d+\)))?(?P<title>.*?)[\.\-_ \:](v\.?\d\.\d|PAL|NTSC|EUR|USA|JP|ASIA|JAP|JPN|AUS|MULTI(\.?\d{1,2})?|PATCHED|FULLDVD|DVD5|DVD9|DVDRIP|PROPER|REPACK|RETAIL|DEMO|DISTRIBUTION|REGIONFREE|[\. ]RF[\. ]?|READ\.?NFO|NFOFIX|PS2|PS3|PSP|WII|X\-?BOX|XBLA|X360|3DS|NDS|N64|NGC)/i', $releasename, $matches);
 		if (isset($matches['title'])) {
 			$title = $matches['title'];
 			// Replace dots, underscores, or brackets with spaces.
 			$result['title'] = preg_replace('/(\.|_|\%20|\[|\])/', ' ', $title);
+			$result['title'] = str_replace(' RF ', ' ', $result['title']);
 			// Needed to add code to handle DLC Properly.
 			if (preg_match('/dlc/i', $result['title'])) {
 				$result['dlc'] = '1';
@@ -653,7 +663,7 @@ class Console
 		}
 
 		//get the platform of the release
-		preg_match('/[\.\-_ ](?P<platform>XBLA|WiiWARE|N64|SNES|NES|PS2|PS ?3|PSX2PSP|PSP|WII|XBOX360|X\-?BOX|X360|3DS|NDS|N?GC)/i', $releasename, $matches);
+		preg_match('/[\.\-_ ](?P<platform>XBLA|WiiWARE|N64|SNES|NES|PS2|PS ?3|PSX2PSP|PSP|WII|XBOX360|XBOXONE|X\-?BOX|X360|3DS|NDS|N?GC)/i', $releasename, $matches);
 		if (isset($matches['platform'])) {
 			$platform = $matches['platform'];
 			if (preg_match('/^N?GC$/i', $platform)) {
@@ -699,6 +709,9 @@ class Console
 			case 'XBOX360':
 			case 'X360':
 				$nodeId = '14220161';
+				break;
+			case 'XBOXONE':
+				$nodeId = '6469269011';
 				break;
 			case 'XBOX':
 			case 'X-BOX':
