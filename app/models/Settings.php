@@ -28,7 +28,7 @@ class Settings extends \lithium\data\Model
 	const REGISTER_STATUS_INVITE = 1;
 	const REGISTER_STATUS_OPEN = 0;
 
-	protected $_meta = [];
+	protected $_meta = ['key' => ['section', 'subsection', 'name']];
 
 	static public function get($setting)
 	{
