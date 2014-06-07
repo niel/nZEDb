@@ -86,7 +86,7 @@ class PagesController extends \lithium\action\Controller
 	protected function _checkSite()
 	{
 		try {
-			$result = Settings::first(array('conditions' => array('id' => '1')));
+			$result = Settings::first(array('conditions' => array('setting' => 'sqlpatch')));
 		} catch (Exception $ex) {
 			return false;
 		}
