@@ -117,6 +117,8 @@ Libraries::add('lithium');
  */
 Libraries::add('app', array('default' => true));
 
+if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+
 /**
  * Add some plugins:
  */
@@ -130,6 +132,7 @@ Libraries::add('li3_mailer');
 
 Libraries::add('li3_quality');
 
+/*
 Libraries::add('nZEDb',
 	array(
 		'prefix' => false,
@@ -140,7 +143,7 @@ Libraries::add('nZEDb',
 			function($class, $options)
 			{
 				return $options['path'] . '/www/lib/' . $class;
-			},*/
+			},* /
 		'bootstrap' => 'autoloader.php',
 		'defer' => true,
 		'default' => false
