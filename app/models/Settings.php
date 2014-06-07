@@ -28,12 +28,12 @@ class Settings extends \lithium\data\Model
 	const REGISTER_STATUS_INVITE = 1;
 	const REGISTER_STATUS_OPEN = 0;
 
-	protected $_meta = array('source' => 'site');
+	protected $_meta = [];
 
 	static public function get($setting)
 	{
 		$setting = self::find('first', ['conditions' => ['setting' => ['=' => $setting]]]);
-		return $setting !== false ? $setting->data()['value'] : null;
+		return $setting === false ?: $setting->data()['value'];
 	}
 
 	static public function asArray()
