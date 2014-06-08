@@ -97,7 +97,8 @@ if (file_exists($config)) {
 				'login'		=> DB_USER,
 				'password'	=> DB_PASSWORD,
 				'database'	=> DB_NAME,
-				'encoding'	=> 'UTF-8'
+				'encoding'	=> 'UTF-8',
+				'persistent'=> false
 			)
 		);
 	}
