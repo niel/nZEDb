@@ -128,6 +128,8 @@ if (file_exists(LITHIUM_LIBRARY_PATH . '/li3_docs')) {
 
 Libraries::add('li3_flash_message');
 
+Libraries::add('li3_git_php');
+
 Libraries::add('li3_mailer');
 
 Libraries::add('li3_quality');
