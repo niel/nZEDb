@@ -148,6 +148,14 @@ class RequestID
 	protected function _getResults()
 	{
 		// Look for records that potentially have requestID titles and have not been matched to a PreDB title
+		if ($this->local === true) {
+			$weblookup = '';
+		} else {
+			$weblookup = sprintf('OR (reqidstatus = %d AND adddate < NOW() - INTERVAL %d HOUR)',
+						self::REQID_NONE,
+						$this->_request_hours
+						);
+		}
 
 		$this->results = $this->db->queryDirect(
 			sprintf ('
@@ -159,12 +167,11 @@ class RequestID
 				AND isrequestid = 1
 				AND (
 					reqidstatus = %d
-					OR (reqidstatus = %d AND adddate < NOW() - INTERVAL %d HOUR)
+					%s
 				)
 				%s %s %s LIMIT %d',
 				($this->local === true ? self::REQID_UPROC : self::REQID_NOLL),
-				self::REQID_NONE,
-				$this->_request_hours,
+				$weblookup,
 				(empty($this->groupID) ? '' : ('AND group_id = ' . $this->groupID)),
 				($this->local === true ? '' : $this->_getReqIdGroups()), // Limit to req id groups on web look ups.
 				($this->local === true ? '' :  'ORDER BY postdate DESC'),
@@ -220,10 +227,11 @@ class RequestID
 			preg_match('/^(\d{4,6})-\d{1}\[/', $releaseName, $requestID) ||
 			preg_match('/(\d{4,6}) -/',$releaseName, $requestID)
 		)  {
-			return (int) $requestID[1];
-		} else {
-			return self::REQID_ZERO;
+			if ((int) $requestID[1] > 0) {
+				return (int) $requestID[1];
+			}
 		}
+		return self::REQID_ZERO;
 	}
 
 	/**
