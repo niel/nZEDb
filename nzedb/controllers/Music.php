@@ -2,34 +2,82 @@
 require_once nZEDb_LIBS . 'AmazonProductAPI.php';
 require_once nZEDb_LIB . 'utility' . DS . 'Utility.php';
 
-use nzedb\db\DB;
+use nzedb\db\Settings;
 
 /**
  * Class Music
  */
 class Music
 {
+	/**
+	 * @var nzedb\db\Settings
+	 */
+	public $pdo;
 
 	/**
-	 * @param bool $echooutput
+	 * @var bool
 	 */
-	function __construct($echooutput = false)
+	public $echooutput;
+
+	/**
+	 * @var array|bool|string
+	 */
+	public $pubkey;
+
+	/**
+	 * @var array|bool|string
+	 */
+	public $privkey;
+
+	/**
+	 * @var array|bool|string
+	 */
+	public $asstag;
+
+	/**
+	 * @var array|bool|int|string
+	 */
+	public $musicqty;
+
+	/**
+	 * @var array|bool|int|string
+	 */
+	public $sleeptime;
+
+	/**
+	 * @var string
+	 */
+	public $imgSavePath;
+
+	/**
+	 * @var string
+	 */
+	public $renamed;
+
+	/**
+	 * @param array $options Class instances/ echo to CLI.
+	 */
+	public function __construct(array $options = array())
 	{
-		$this->echooutput = ($echooutput && nZEDb_ECHOCLI);
-		$s = new Sites();
-		$site = $s->get();
-		$this->pubkey = $site->amazonpubkey;
-		$this->privkey = $site->amazonprivkey;
-		$this->asstag = $site->amazonassociatetag;
-		$this->musicqty = (!empty($site->maxmusicprocessed)) ? $site->maxmusicprocessed : 150;
-		$this->sleeptime = (!empty($site->amazonsleep)) ? $site->amazonsleep : 1000;
-		$this->db = new DB();
+		$defaults = [
+			'Echo'     => false,
+			'Settings' => null,
+		];
+		$options += $defaults;
+
+		$this->echooutput = ($options['Echo'] && nZEDb_ECHOCLI);
+
+		$this->pdo = ($options['Settings'] instanceof Settings ? $options['Settings'] : new Settings());
+		$this->pubkey = $this->pdo->getSetting('amazonpubkey');
+		$this->privkey = $this->pdo->getSetting('amazonprivkey');
+		$this->asstag = $this->pdo->getSetting('amazonassociatetag');
+		$this->musicqty = ($this->pdo->getSetting('maxmusicprocessed') != '') ? $this->pdo->getSetting('maxmusicprocessed') : 150;
+		$this->sleeptime = ($this->pdo->getSetting('amazonsleep') != '') ? $this->pdo->getSetting('amazonsleep') : 1000;
 		$this->imgSavePath = nZEDb_COVERS . 'music' . DS;
 		$this->renamed = '';
-		if ($site->lookupmusic == 2) {
+		if ($this->pdo->getSetting('lookupmusic') == 2) {
 			$this->renamed = 'AND isrenamed = 1';
 		}
-		$this->c = new ColorCLI();
 	}
 
 	/**
@@ -39,8 +87,8 @@ class Music
 	 */
 	public function getMusicInfo($id)
 	{
-		$db = $this->db;
-		return $db->queryOneRow(sprintf("SELECT musicinfo.*, genres.title AS genres FROM musicinfo LEFT OUTER JOIN genres ON genres.id = musicinfo.genreid WHERE musicinfo.id = %d ", $id));
+		$pdo = $this->pdo;
+		return $pdo->queryOneRow(sprintf("SELECT musicinfo.*, genres.title AS genres FROM musicinfo LEFT OUTER JOIN genres ON genres.id = musicinfo.genre_id WHERE musicinfo.id = %d ", $id));
 	}
 
 	/**
@@ -51,12 +99,7 @@ class Music
 	 */
 	public function getMusicInfoByName($artist, $album)
 	{
-		$db = $this->db;
-		$like = 'ILIKE';
-		if ($db->dbSystem() === 'mysql') {
-			$like = 'LIKE';
-		}
-		return $db->queryOneRow(sprintf("SELECT * FROM musicinfo WHERE title LIKE %s AND artist %s %s", $db->escapeString("%" . $artist . "%"), $like, $db->escapeString("%" . $album . "%")));
+		return $this->pdo->queryOneRow(sprintf("SELECT * FROM musicinfo WHERE title %s AND artist %s", $this->pdo->likeString($album, true, true), $this->pdo->likeString($artist, true, true)));
 	}
 
 	/**
@@ -67,7 +110,7 @@ class Music
 	 */
 	public function getRange($start, $num)
 	{
-		$db = $this->db;
+		$pdo = $this->pdo;
 
 		if ($start === false) {
 			$limit = "";
@@ -75,7 +118,7 @@ class Music
 			$limit = " LIMIT " . $num . " OFFSET " . $start;
 		}
 
-		return $db->query(" SELECT * FROM musicinfo ORDER BY createddate DESC" . $limit);
+		return $pdo->query(" SELECT * FROM musicinfo ORDER BY createddate DESC" . $limit);
 	}
 
 	/**
@@ -83,8 +126,8 @@ class Music
 	 */
 	public function getCount()
 	{
-		$db = $this->db;
-		$res = $db->queryOneRow("SELECT COUNT(id) AS num FROM musicinfo");
+		$pdo = $this->pdo;
+		$res = $pdo->queryOneRow("SELECT COUNT(id) AS num FROM musicinfo");
 		return $res["num"];
 	}
 
@@ -97,14 +140,14 @@ class Music
 	 */
 	public function getMusicCount($cat, $maxage = -1, $excludedcats = array())
 	{
-		$db = $this->db;
+		$pdo = $this->pdo;
 
 		$browseby = $this->getBrowseBy();
 
 		$catsrch = "";
 		if (count($cat) > 0 && $cat[0] != -1) {
 			$catsrch = " (";
-			$categ = new Category();
+			$categ = new Category(['Settings' => $this->pdo]);
 			foreach ($cat as $category) {
 				if ($category != -1) {
 					if ($categ->isParent($category)) {
@@ -126,11 +169,7 @@ class Music
 		}
 
 		if ($maxage > 0) {
-			if ($db->dbSystem() === 'mysql') {
-				$maxage = sprintf(' AND r.postdate > NOW() - INTERVAL %d DAY ', $maxage);
-			} else if ($db->dbSystem() === 'pgsql') {
-				$maxage = sprintf(" AND r.postdate > NOW() - INTERVAL '%d DAYS' ", $maxage);
-			}
+			$maxage = sprintf(' AND r.postdate > NOW() - INTERVAL %d DAY ', $maxage);
 		} else {
 			$maxage = '';
 		}
@@ -141,7 +180,7 @@ class Music
 		}
 
 		$sql = sprintf("SELECT COUNT(DISTINCT r.musicinfoid) AS num FROM releases r INNER JOIN musicinfo m ON m.id = r.musicinfoid AND m.title != '' AND m.cover = 1 WHERE nzbstatus = 1 AND r.passwordstatus <= (SELECT value FROM settings WHERE setting='showpasswordedrelease') AND %s %s %s %s", $browseby, $catsrch, $maxage, $exccatlist);
-		$res = $db->queryOneRow($sql);
+		$res = $pdo->queryOneRow($sql);
 		return $res["num"];
 	}
 
@@ -150,14 +189,13 @@ class Music
 	 * @param       $start
 	 * @param       $num
 	 * @param       $orderby
-	 * @param       $maxage
 	 * @param array $excludedcats
 	 *
 	 * @return array
 	 */
-	public function getMusicRange($cat, $start, $num, $orderby, $maxage = -1, $excludedcats = array())
+	public function getMusicRange($cat, $start, $num, $orderby, $excludedcats = array())
 	{
-		$db = $this->db;
+		$pdo = $this->pdo;
 
 		$browseby = $this->getBrowseBy();
 
@@ -170,7 +208,7 @@ class Music
 		$catsrch = "";
 		if (count($cat) > 0 && $cat[0] != -1) {
 			$catsrch = " (";
-			$categ = new Category();
+			$categ = new Category(['Settings' => $this->pdo]);
 			foreach ($cat as $category) {
 				if ($category != -1) {
 					if ($categ->isParent($category)) {
@@ -191,22 +229,13 @@ class Music
 			$catsrch .= "1=2 )";
 		}
 
-		$maxage = '';
-		if ($maxage > 0) {
-			if ($db->dbSystem() === 'mysql') {
-				$maxage = sprintf(' AND r.postdate > NOW() - INTERVAL %d DAY ', $maxage);
-			} else if ($db->dbSystem() === 'pgsql') {
-				$maxage = sprintf(" AND r.postdate > NOW() - INTERVAL '%d DAYS' ", $maxage);
-			}
-		}
-
 		$exccatlist = "";
 		if (count($excludedcats) > 0) {
 			$exccatlist = " AND r.categoryid NOT IN (" . implode(",", $excludedcats) . ")";
 		}
 
 		$order = $this->getMusicOrder($orderby);
-		return $db->query(sprintf("SELECT GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id, "
+		return $pdo->query(sprintf("SELECT GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id, "
 					. "GROUP_CONCAT(r.rarinnerfilecount ORDER BY r.postdate DESC SEPARATOR ',') as grp_rarinnerfilecount, "
 					. "GROUP_CONCAT(r.haspreview ORDER BY r.postdate DESC SEPARATOR ',') AS grp_haspreview, "
 					. "GROUP_CONCAT(r.passwordstatus ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_password, "
@@ -224,8 +253,8 @@ class Music
 					. "LEFT OUTER JOIN releasenfo rn ON rn.releaseid = r.id "
 					. "INNER JOIN musicinfo m ON m.id = r.musicinfoid "
 					. "WHERE r.nzbstatus = 1 AND m.cover = 1 AND m.title != '' AND "
-					. "r.passwordstatus <= (SELECT value FROM settings WHERE setting='showpasswordedrelease') AND %s %s %s %s "
-					. "GROUP BY m.id ORDER BY %s %s" . $limit, $browseby, $catsrch, $maxage, $exccatlist, $order[0], $order[1]));
+					. "r.passwordstatus <= (SELECT value FROM settings WHERE setting='showpasswordedrelease') AND %s %s %s "
+					. "GROUP BY m.id ORDER BY %s %s" . $limit, $browseby, $catsrch, $exccatlist, $order[0], $order[1]));
 	}
 
 	/**
@@ -254,7 +283,7 @@ class Music
 				$orderfield = 'm.year';
 				break;
 			case 'genre':
-				$orderfield = 'm.genreid';
+				$orderfield = 'm.genre_id';
 				break;
 			case 'posted':
 			default:
@@ -278,7 +307,7 @@ class Music
 	 */
 	public function getBrowseByOptions()
 	{
-		return array('artist' => 'artist', 'title' => 'title', 'genre' => 'genreid', 'year' => 'year');
+		return array('artist' => 'artist', 'title' => 'title', 'genre' => 'genre_id', 'year' => 'year');
 	}
 
 	/**
@@ -286,12 +315,9 @@ class Music
 	 */
 	public function getBrowseBy()
 	{
-		$db = new DB();
+		$pdo = new Settings();
 
-		$like = ' ILIKE(';
-		if ($db->dbSystem() === 'mysql') {
-			$like = ' LIKE(';
-		}
+		$like = ' LIKE(';
 
 		$browseby = ' ';
 		$browsebyArr = $this->getBrowseByOptions();
@@ -301,7 +327,7 @@ class Music
 				if (preg_match('/id/i', $bbv)) {
 					$browseby .= 'm.' . $bbv . ' = ' . $bbs . ' AND ';
 				} else {
-					$browseby .= 'm.' . $bbv . $like . $db->escapeString('%' . $bbs . '%') . ') AND ';
+					$browseby .= 'm.' . $bbv . $like . $pdo->escapeString('%' . $bbs . '%') . ') AND ';
 				}
 			}
 		}
@@ -345,8 +371,8 @@ class Music
 	 */
 	public function update($id, $title, $asin, $url, $salesrank, $artist, $publisher, $releasedate, $year, $tracks, $cover, $genreID)
 	{
-		$db = $this->db;
-		$db->queryExec(sprintf("UPDATE musicinfo SET title = %s, asin = %s, url = %s, salesrank = %s, artist = %s, publisher = %s, releasedate = %s, year = %s, tracks = %s, cover = %d, genreid = %d, updateddate = NOW() WHERE id = %d", $db->escapeString($title), $db->escapeString($asin), $db->escapeString($url), $salesrank, $db->escapeString($artist), $db->escapeString($publisher), $db->escapeString($releasedate), $db->escapeString($year), $db->escapeString($tracks), $cover, $genreID, $id));
+		$pdo = $this->pdo;
+		$pdo->queryExec(sprintf("UPDATE musicinfo SET title = %s, asin = %s, url = %s, salesrank = %s, artist = %s, publisher = %s, releasedate = %s, year = %s, tracks = %s, cover = %d, genre_id = %d, updateddate = NOW() WHERE id = %d", $pdo->escapeString($title), $pdo->escapeString($asin), $pdo->escapeString($url), $salesrank, $pdo->escapeString($artist), $pdo->escapeString($publisher), $pdo->escapeString($releasedate), $pdo->escapeString($year), $pdo->escapeString($tracks), $cover, $genreID, $id));
 	}
 
 	/**
@@ -358,9 +384,9 @@ class Music
 	 */
 	public function updateMusicInfo($title, $year, $amazdata = null)
 	{
-		$db = $this->db;
-		$gen = new Genres();
-		$ri = new ReleaseImage();
+		$pdo = $this->pdo;
+		$gen = new Genres(['Settings' => $this->pdo]);
+		$ri = new ReleaseImage($this->pdo);
 		$titlepercent = 0;
 
 		$mus = array();
@@ -368,7 +394,10 @@ class Music
 			$amaz = $this->fetchAmazonProperties($title);
 		} else if ($amazdata != null) {
 			$amaz = $amazdata;
+		} else {
+			$amaz = false;
 		}
+
 		if (!$amaz) {
 			return false;
 		}
@@ -417,7 +446,7 @@ class Music
 
 		$mus['publisher'] = (string) $amaz->Items->Item->ItemAttributes->Publisher;
 
-		$mus['releasedate'] = $db->escapeString((string) $amaz->Items->Item->ItemAttributes->ReleaseDate);
+		$mus['releasedate'] = $pdo->escapeString((string) $amaz->Items->Item->ItemAttributes->ReleaseDate);
 		if ($mus['releasedate'] == "''") {
 			$mus['releasedate'] = 'null';
 		}
@@ -467,39 +496,34 @@ class Music
 			if (in_array(strtolower($genreName), $genreassoc)) {
 				$genreKey = array_search(strtolower($genreName), $genreassoc);
 			} else {
-				$genreKey = $db->queryInsert(sprintf("INSERT INTO genres (title, type) VALUES (%s, %d)", $db->escapeString($genreName), Genres::MUSIC_TYPE));
+				$genreKey = $pdo->queryInsert(sprintf("INSERT INTO genres (title, type) VALUES (%s, %d)", $pdo->escapeString($genreName), Genres::MUSIC_TYPE));
 			}
 		}
 		$mus['musicgenre'] = $genreName;
 		$mus['musicgenreid'] = $genreKey;
 
-		$check = $db->queryOneRow(sprintf('SELECT id FROM musicinfo WHERE asin = %s', $db->escapeString($mus['asin'])));
+		$check = $pdo->queryOneRow(sprintf('SELECT id FROM musicinfo WHERE asin = %s', $pdo->escapeString($mus['asin'])));
 		if ($check === false) {
-			$musicId = $db->queryInsert(sprintf("INSERT INTO musicinfo (title, asin, url, salesrank, artist, publisher, "
-					. "releasedate, review, year, genreid, tracks, cover, createddate, updateddate) VALUES "
-					. "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, now(), now())", $db->escapeString($mus['title']), $db->escapeString($mus['asin']), $db->escapeString($mus['url']), $mus['salesrank'], $db->escapeString($mus['artist']), $db->escapeString($mus['publisher']), $mus['releasedate'], $db->escapeString($mus['review']), $db->escapeString($mus['year']), ($mus['musicgenreid'] == -1 ? "null" : $mus['musicgenreid']), $db->escapeString($mus['tracks']), $mus['cover']));
+			$musicId = $pdo->queryInsert(sprintf("INSERT INTO musicinfo (title, asin, url, salesrank, artist, publisher, "
+					. "releasedate, review, year, genre_id, tracks, cover, createddate, updateddate) VALUES "
+					. "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, now(), now())", $pdo->escapeString($mus['title']), $pdo->escapeString($mus['asin']), $pdo->escapeString($mus['url']), $mus['salesrank'], $pdo->escapeString($mus['artist']), $pdo->escapeString($mus['publisher']), $mus['releasedate'], $pdo->escapeString($mus['review']), $pdo->escapeString($mus['year']), ($mus['musicgenreid'] == -1 ? "null" : $mus['musicgenreid']), $pdo->escapeString($mus['tracks']), $mus['cover']));
 		} else {
 			$musicId = $check['id'];
-			$db->queryExec(sprintf('UPDATE musicinfo SET title = %s, asin = %s, url = %s, salesrank = %s, artist = %s, '
-					. 'publisher = %s, releasedate = %s, review = %s, year = %s, genreid = %s, tracks = %s, cover = %s, '
-					. 'updateddate = NOW() WHERE id = %d', $db->escapeString($mus['title']), $db->escapeString($mus['asin']), $db->escapeString($mus['url']), $mus['salesrank'], $db->escapeString($mus['artist']), $db->escapeString($mus['publisher']), $mus['releasedate'], $db->escapeString($mus['review']), $db->escapeString($mus['year']), ($mus['musicgenreid'] == -1 ? "null" : $mus['musicgenreid']), $db->escapeString($mus['tracks']), $mus['cover'], $musicId));
+			$pdo->queryExec(sprintf('UPDATE musicinfo SET title = %s, asin = %s, url = %s, salesrank = %s, artist = %s, '
+					. 'publisher = %s, releasedate = %s, review = %s, year = %s, genre_id = %s, tracks = %s, cover = %s, '
+					. 'updateddate = NOW() WHERE id = %d', $pdo->escapeString($mus['title']), $pdo->escapeString($mus['asin']), $pdo->escapeString($mus['url']), $mus['salesrank'], $pdo->escapeString($mus['artist']), $pdo->escapeString($mus['publisher']), $mus['releasedate'], $pdo->escapeString($mus['review']), $pdo->escapeString($mus['year']), ($mus['musicgenreid'] == -1 ? "null" : $mus['musicgenreid']), $pdo->escapeString($mus['tracks']), $mus['cover'], $musicId));
 		}
 
 		if ($musicId) {
 			if ($this->echooutput) {
-				if ($mus["artist"] == "") {
-					$artist = "";
-				} else {
-					$artist = "Artist: " . $mus['artist'] . ", Album: ";
-				}
-				$this->c->doEcho(
-					$this->c->header("\nAdded/updated album: ") .
-					$this->c->alternateOver("   Artist: ") .
-					$this->c->primary($mus['artist']) .
-					$this->c->alternateOver("   Title:  ") .
-					$this->c->primary($mus['title']) .
-					$this->c->alternateOver("   Year:   ") .
-					$this->c->primary($mus['year'])
+				$this->pdo->log->doEcho(
+					$this->pdo->log->header("\nAdded/updated album: ") .
+					$this->pdo->log->alternateOver("   Artist: ") .
+					$this->pdo->log->primary($mus['artist']) .
+					$this->pdo->log->alternateOver("   Title:  ") .
+					$this->pdo->log->primary($mus['title']) .
+					$this->pdo->log->alternateOver("   Year:   ") .
+					$this->pdo->log->primary($mus['year'])
 				);
 			}
 			$mus['cover'] = $ri->saveImage($musicId, $mus['coverurl'], $this->imgSavePath, 250, 250);
@@ -510,9 +534,9 @@ class Music
 				} else {
 					$artist = "Artist: " . $mus['artist'] . ", Album: ";
 				}
-				$this->c->doEcho(
-					$this->c->headerOver("Nothing to update: ") .
-					$this->c->primaryOver(
+				$this->pdo->log->doEcho(
+					$this->pdo->log->headerOver("Nothing to update: ") .
+					$this->pdo->log->primaryOver(
 						$artist .
 						$mus['title'] .
 						" (" .
@@ -539,6 +563,7 @@ class Music
 		try {
 			$result = $obj->searchProducts($title, AmazonProductAPI::MUSIC, "TITLE");
 		} catch (Exception $e) {
+			// Empty because we try another method.
 		}
 
 		// Try MP3 category.
@@ -547,6 +572,7 @@ class Music
 			try {
 				$result = $obj->searchProducts($title, AmazonProductAPI::MP3, "TITLE");
 			} catch (Exception $e) {
+				// Empty because we try another method.
 			}
 		}
 
@@ -556,6 +582,7 @@ class Music
 			try {
 				$result = $obj->searchProducts($title, AmazonProductAPI::DIGITALMUS, "TITLE");
 			} catch (Exception $e) {
+				// Empty because we try another method.
 			}
 		}
 
@@ -565,6 +592,7 @@ class Music
 			try {
 				$result = $obj->searchProducts($title, AmazonProductAPI::MUSICTRACKS, "TITLE");
 			} catch (Exception $e) {
+				// Empty because we exhausted all possibilities.
 			}
 		}
 
@@ -574,16 +602,16 @@ class Music
 	/**
 	 *
 	 */
-	public function processMusicReleases()
+	public function processMusicReleases($local = false)
 	{
-		$db = $this->db;
-		$res = $db->queryDirect(sprintf('SELECT searchname, id FROM releases '
+		$pdo = $this->pdo;
+		$res = $pdo->queryDirect(sprintf('SELECT searchname, id FROM releases '
 				. 'WHERE musicinfoid IS NULL AND nzbstatus = 1 %s AND categoryid IN (3010, 3040, 3050) '
 				. 'ORDER BY postdate DESC LIMIT %d', $this->renamed, $this->musicqty));
-		if ($res->rowCount() > 0) {
+		if ($res instanceof Traversable && $res->rowCount() > 0) {
 			if ($this->echooutput) {
-				$this->c->doEcho(
-					$this->c->header("Processing " . $res->rowCount() .' music release(s).'
+				$this->pdo->log->doEcho(
+					$this->pdo->log->header("Processing " . $res->rowCount() .' music release(s).'
 					)
 				);
 			}
@@ -596,13 +624,13 @@ class Music
 					$newname = $album["name"] . ' (' . $album["year"] . ')';
 
 					if ($this->echooutput) {
-						$this->c->doEcho($this->c->headerOver('Looking up: ') . $this->c->primary($newname));
+						$this->pdo->log->doEcho($this->pdo->log->headerOver('Looking up: ') . $this->pdo->log->primary($newname));
 					}
 
 					// Do a local lookup first
 					$musicCheck = $this->getMusicInfoByName('', $album["name"]);
 
-					if ($musicCheck === false) {
+					if ($musicCheck === false && $local === false) {
 						$albumId = $this->updateMusicInfo($album["name"], $album['year']);
 						$usedAmazon = true;
 						if ($albumId === false) {
@@ -613,10 +641,10 @@ class Music
 					}
 
 					// Update release.
-					$db->queryExec(sprintf("UPDATE releases SET musicinfoid = %d WHERE id = %d", $albumId, $arr["id"]));
+					$pdo->queryExec(sprintf("UPDATE releases SET musicinfoid = %d WHERE id = %d", $albumId, $arr["id"]));
 				} // No album found.
 				else {
-					$db->queryExec(sprintf("UPDATE releases SET musicinfoid = %d WHERE id = %d", -2, $arr["id"]));
+					$pdo->queryExec(sprintf("UPDATE releases SET musicinfoid = %d WHERE id = %d", -2, $arr["id"]));
 					echo '.';
 				}
 
@@ -633,7 +661,7 @@ class Music
 
 		} else {
 			if ($this->echooutput) {
-				$this->c->doEcho($this->c->header('No music releases to process.'));
+				$this->pdo->log->doEcho($this->pdo->log->header('No music releases to process.'));
 			}
 		}
 	}
@@ -645,7 +673,6 @@ class Music
 	 */
 	public function parseArtist($releasename)
 	{
-		$name = '';
 		if (preg_match('/(.+?)(\d{1,2} \d{1,2} )?\(?(19\d{2}|20[0-1][0-9])\b/', $releasename, $name)) {
 			$result = array();
 			$result["year"] = $name[3];
@@ -655,23 +682,10 @@ class Music
 			$c = preg_replace('/ (\d{1,2} \d{1,2} )?([A-Z])( ?$)|\(?[0-9]{8,}\)?| (CABLE|FREEWEB|LINE|MAG|MCD|YMRSMILES)|\(([a-z]{2,}[0-9]{2,}|ost)\)|-web-/', ' ', $b);
 			$d = preg_replace('/VA( |-)/', 'Various Artists ', $c);
 			$e = preg_replace('/ (\d{1,2} \d{1,2} )?(DAB|DE|DVBC|EP|FIX|IT|Jap|NL|PL|(Pure )?FM|SSL|VLS) /i', ' ', $d);
-			$f = preg_replace('/ (\d{1,2} \d{1,2} )?(CD(A|EP|M|R|S)?|QEDCD|SBD) /i', ' ', $e);
+			$f = preg_replace('/ (\d{1,2} \d{1,2} )?(CABLE|CD(A|EP|M|R|S)?|QEDCD|SAT|SBD) /i', ' ', $e);
 			$g = str_replace(array('_', '-'), ' ', $f);
 			$h = trim(preg_replace('/\s\s+/', ' ', $g));
-			$newname = trim(preg_Replace('/ [a-z]{2}$| [a-z]{3} \d{2,}$|\d{5,} \d{5,}$|-WEB$/i', '', $h));
-
-			/*var_dump($releasename);
-			var_dump($name[1]);
-			var_dump($a);
-			var_dump($b);
-			var_dump($c);
-			var_dump($d);
-			var_dump($e);
-			var_dump($f);
-			var_dump($g);
-			var_dump($h);
-			var_dump($newname);
-			//exit();*/
+			$newname = trim(preg_replace('/ [a-z]{2}$| [a-z]{3} \d{2,}$|\d{5,} \d{5,}$|-WEB$/i', '', $h));
 
 			if (!preg_match('/^[a-z0-9]+$/i', $newname) && strlen($newname) > 10) {
 				$result["name"] = $newname;
@@ -691,11 +705,11 @@ class Music
 	 */
 	public function getGenres($activeOnly = false)
 	{
-		$db = $this->db;
+		$pdo = $this->pdo;
 		if ($activeOnly) {
-			return $db->query("SELECT musicgenre.* FROM musicgenre INNER JOIN (SELECT DISTINCT musicgenreid FROM musicinfo) x ON x.musicgenreid = musicgenre.id ORDER BY title");
+			return $pdo->query("SELECT musicgenre.* FROM musicgenre INNER JOIN (SELECT DISTINCT musicgenreid FROM musicinfo) x ON x.musicgenreid = musicgenre.id ORDER BY title");
 		} else {
-			return $db->query("SELECT * FROM musicgenre ORDER BY title");
+			return $pdo->query("SELECT * FROM musicgenre ORDER BY title");
 		}
 	}
 

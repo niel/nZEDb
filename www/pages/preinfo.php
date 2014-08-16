@@ -1,5 +1,7 @@
 <?php
 /**
+ * You can make this page accessible publicly by changing the nZEDb_PREINFO_OPEN setting in www/settings.php
+ *
  * This page prints an XML (or JSON, see extras) on the browser with predb data based on criteria.
  *
  * NOTE: By default only 1 result is returned, see the Extras for returning more than 1 result.
@@ -125,14 +127,13 @@
  *              )
  */
 
-// You can make this page accessible by all (even people without an API key) by setting this to false :
-if (true) {
-	if (!$users->isLoggedIn()) {
+if (nZEDb_PREINFO_OPEN) {
+	if (!$page->users->isLoggedIn()) {
 		if (!isset($_GET['apikey'])) {
 			apiError('Missing parameter (apikey)', 200);
 		}
 
-		if (!$users->getByRssToken($_GET['apikey'])) {
+		if (!$page->users->getByRssToken($_GET['apikey'])) {
 			apiError('Incorrect user credentials (api key is wrong)', 100);
 		}
 	}
@@ -179,8 +180,8 @@ if (isset($_GET['type'])) {
 		case 'r':
 		case 'requestid':
 			if (isset($_GET['reqid']) && is_numeric($_GET['reqid']) && isset($_GET['group']) && is_string($_GET['group'])) {
-				$db = new nzedb\db\DB;
-				$preData = $db->query(
+				$pdo = new nzedb\db\DB;
+				$preData = $pdo->query(
 					sprintf('
 						SELECT p.*,
 						g.name AS groupname
@@ -192,7 +193,7 @@ if (isset($_GET['type'])) {
 						LIMIT %d
 						OFFSET %d',
 						$_GET['reqid'],
-						$db->escapeString($_GET['group']),
+						$pdo->escapeString($_GET['group']),
 						$newer,
 						$older,
 						$nuked,
@@ -206,13 +207,13 @@ if (isset($_GET['type'])) {
 		case 't':
 		case 'title':
 			if (isset($_GET['title'])) {
-				$db = new nzedb\db\DB;
-				$preData = $db->query(
+				$pdo = new nzedb\db\DB;
+				$preData = $pdo->query(
 					sprintf('SELECT * FROM predb p WHERE p.title %s %s %s %s LIMIT %d OFFSET %d',
 						$newer,
 						$older,
 						$nuked,
-						$db->likeString(urldecode($_GET['title'])),
+						$pdo->likeString(urldecode($_GET['title'])),
 						$limit,
 						$offset
 					)
@@ -224,10 +225,10 @@ if (isset($_GET['type'])) {
 		case 'm':
 		case 'md5':
 			if (isset($_GET['md5']) && strlen($_GET['title']) === 32) {
-				$db = new nzedb\db\DB;
-				$preData = $db->query(
+				$pdo = new nzedb\db\DB;
+				$preData = $pdo->query(
 					sprintf('SELECT * FROM predb p INNER JOIN predbhash ph ON ph.pre_id = p.id WHERE MATCH(hashes) AGAINST (%s) %s %s %s LIMIT %d OFFSET %d',
-						$db->escapeString($_GET['md5']),
+						$pdo->escapeString($_GET['md5']),
 						$newer,
 						$older,
 						$nuked,
@@ -241,10 +242,10 @@ if (isset($_GET['type'])) {
 		case 's':
 		case 'sha1':
 			if (isset($_GET['sha1']) && strlen($_GET['sha1']) === 40) {
-				$db = new nzedb\db\DB;
-				$preData = $db->query(
+				$pdo = new nzedb\db\DB;
+				$preData = $pdo->query(
 					sprintf('SELECT * FROM predb p INNER JOIN predbhash ph ON ph.pre_id = p.id WHERE MATCH(hashes) AGAINST (%s) %s %s %s LIMIT %d OFFSET %d',
-						$db->escapeString($_GET['sha1']),
+						$pdo->escapeString($_GET['sha1']),
 						$newer,
 						$older,
 						$nuked,
@@ -258,13 +259,13 @@ if (isset($_GET['type'])) {
 		case 'c':
 		case 'category':
 			if (isset($_GET['category'])) {
-				$db = new nzedb\db\DB;
-				$preData = $db->query(
+				$pdo = new nzedb\db\DB;
+				$preData = $pdo->query(
 					sprintf('SELECT * FROM predb p WHERE p.category %s %s %s %s LIMIT %d OFFSET %d',
 						$newer,
 						$older,
 						$nuked,
-						$db->likeString($_GET['category']),
+						$pdo->likeString($_GET['category']),
 						$limit,
 						$offset
 					)
@@ -274,8 +275,8 @@ if (isset($_GET['type'])) {
 
 		case 'a':
 		case 'all':
-			$db = new nzedb\db\DB;
-			$preData = $db->query(
+			$pdo = new nzedb\db\DB;
+			$preData = $pdo->query(
 				sprintf('SELECT * FROM predb p WHERE 1=1 %s %s %s ORDER BY p.predate DESC LIMIT %d OFFSET %d',
 					$newer,
 					$older,
@@ -290,11 +291,11 @@ if (isset($_GET['type'])) {
 
 	$reqData = @unserialize($_POST['data']);
 	if ($reqData !== false && is_array($reqData) && isset($reqData[0]['ident'])) {
-		$db = new nzedb\db\DB;
+		$pdo = new nzedb\db\DB;
 		$preData = array();
 
 		foreach ($reqData as $request) {
-			$result = $db->queryOneRow(
+			$result = $pdo->queryOneRow(
 				sprintf('
 					SELECT p.*,
 					g.name AS groupname
@@ -304,7 +305,7 @@ if (isset($_GET['type'])) {
 					AND g.name = %s
 					LIMIT 1',
 					$request['reqid'],
-					$db->escapeString($request['group'])
+					$pdo->escapeString($request['group'])
 				)
 			);
 

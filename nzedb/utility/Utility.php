@@ -10,36 +10,121 @@ class Utility
 	/**
 	 *  Regex for detecting multi-platform path. Use it where needed so it can be updated in one location as required characters get added.
 	 */
-	const PATH_REGEX = '(?P<drive>[A-Za-z]:|)(?P<path>[/\w.-]+|)';
+	const PATH_REGEX = '(?P<drive>[A-Za-z]:|)(?P<path>[(?:\\|/)\w-]+|)';
 
+	/**
+	 * Replace all white space chars for a single space.
+	 *
+	 * @param string $text
+	 *
+	 * @return string
+	 *
+	 * @static
+	 * @access public
+	 */
+	static public function collapseWhiteSpace($text)
+	{
+		// Strip leading/trailing white space.
+		return trim(
+		// Replace 2 or more white space for a single space.
+			preg_replace('/\s{2,}/',
+						 ' ',
+				// Replace all literal and non literal new lines and carriage returns.
+						 str_replace(array("\n", '\n', "\r", '\r'), ' ', $text)
+			)
+		);
+	}
+
+	/**
+	 * Removes the preceeding or proceeding portion of a string
+	 * relative to the last occurrence of the specified character.
+	 * The character selected may be retained or discarded.
+	 *
+	 * @param string $character      the character to search for.
+	 * @param string $string         the string to search through.
+	 * @param string $side           determines whether text to the left or the right of the character is returned.
+	 *                               Options are: left, or right.
+	 * @param bool   $keepCharacter determines whether or not to keep the character.
+	 *                               Options are: true, or false.
+	 *
+	 * @return string
+	 */
+	static public function cutStringUsingLast($character, $string, $side, $keepCharacter = true)
+	{
+		$offset      = ($keepCharacter ? 1 : 0);
+		$wholeLength = strlen($string);
+		$rightLength = (strlen(strrchr($string, $character)) - 1);
+		$leftLength  = ($wholeLength - $rightLength - 1);
+		switch ($side) {
+			case 'left':
+				$piece = substr($string, 0, ($leftLength + $offset));
+				break;
+			case 'right':
+				$start = (0 - ($rightLength + $offset));
+				$piece = substr($string, $start);
+				break;
+			default:
+				$piece = false;
+				break;
+		}
+		return ($piece);
+	}
+
+	/**
+	 * Get list of files/directories from supplied directory.
+	 *
+	 * @param array $options
+	 *        'dir'		=> boolean, include directory paths
+	 *        'ext'		=> file suffix, no full stop (period) separator should be used.
+	 *        'path'	=> The path to list from. If left empty it will use whatever the current working directory is.
+	 *        'regex'	=> Regular expressions that the full path must match to be included,
+	 *
+	 * @return array	Always returns array of path-names in unix format (even on Windows).
+	 */
 	static public function getDirFiles (array $options = null)
 	{
 		$defaults = array(
 			'dir'	=> false,
-			'ext'	=> '', // no full stop (period) separator should be used.
+			'ext'	=> '',
 			'path'	=> '',
 			'regex'	=> '',
 		);
 		$options += $defaults;
 
 		$files = array();
-		$dir = new \DirectoryIterator($options['path']);
-		foreach ($dir as $fileinfo) {
-			$file = $fileinfo->getFilename();
+		$iterator = new \FilesystemIterator($options['path'],
+										\FilesystemIterator::KEY_AS_PATHNAME |
+										\FilesystemIterator::SKIP_DOTS |
+										\FilesystemIterator::UNIX_PATHS);
+		foreach ($iterator as $fileinfo) {
+			$file = $iterator->key();
 			switch (true) {
-				case $fileinfo->isDot():
-					break;
 				case !$options['dir'] && $fileinfo->isDir():
 					break;
 				case !empty($options['ext']) && $fileinfo->getExtension() != $options['ext'];
 					break;
-				case !preg_match($options['regex'], str_replace('\\', '/', $file)):
+				case (empty($options['regex']) || !preg_match($options['regex'], $file)):
 					break;
 				default:
-					$files[] = $fileinfo->getPathname();
+					$files[] = $file;
 				}
 		}
 		return $files;
+	}
+
+	static public function getValidVersionsFile()
+	{
+		$versions = @simplexml_load_file(nZEDb_VERSIONS);
+
+		if ($versions === false) {
+			if (self::isCLI()) {
+				echo (new \ColorCLI())->error(
+					"\nYour versioning XML file ({nZEDb_VERSIONS}) is broken, try updating from git.\n"
+				);
+			}
+			throw new \RuntimeException('Versioning file is broken!');
+		}
+		return $versions;
 	}
 
 	/**
@@ -74,6 +159,27 @@ class Utility
 	static public function isCLI ()
 	{
 		return ((strtolower(PHP_SAPI) === 'cli') ? true : false);
+	}
+
+	static public function isPatched()
+	{
+		$versions = self::getValidVersionsFile();
+
+		$pdo = new \nzedb\db\Settings();
+		$patch = $pdo->getSetting(['section' => '', 'subsection' => '', 'name' => 'sqlpatch']);
+		$ver = $versions->versions->sql->file;
+
+		// Check database patch version
+		if ($patch < $ver) {
+			$message = "\nYour database is not up to date. Reported patch levels\n   Db: $patch\nfile: $ver\nPlease update.\n php " .
+				nZEDb_ROOT . "cli/update_db.php true\n";
+			if (self::isCLI()) {
+				echo (new \ColorCLI())->error($message);
+			}
+			throw new \RuntimeException($message);
+		}
+
+		return true;
 	}
 
 	static public function isWin()
@@ -140,39 +246,30 @@ class Utility
 	}
 
 	/**
-	 * Removes the preceeding or proceeding portion of a string
-	 * relative to the last occurrence of the specified character.
-	 * The character selected may be retained or discarded.
+	 * Unzip a gzip file, return the output. Return false on error / empty.
 	 *
-	 * @param string $character the character to search for.
-	 * @param string $string the string to search through.
-	 * @param string $side determines whether text to the left or the right of the character is returned.
-	 * Options are: left, or right.
-	 * @param bool $keep_character determines whether or not to keep the character.
-	 * Options are: true, or false.
-	 * @return string
+	 * @param string $filePath
+	 *
+	 * @return bool|string
 	 */
-	static public function cutStringUsingLast($character, $string, $side, $keep_character=true)
+	static public function unzipGzipFile($filePath)
 	{
-		$offset = ($keep_character ? 1 : 0);
-		$whole_length = strlen($string);
-		$right_length = (strlen(strrchr($string, $character)) - 1);
-		$left_length = ($whole_length - $right_length - 1);
-		switch($side) {
-			case 'left':
-				$piece = substr($string, 0, ($left_length + $offset));
-				break;
-			case 'right':
-				$start = (0 - ($right_length + $offset));
-				$piece = substr($string, $start);
-				break;
-			default:
-				$piece = false;
-				break;
-		}
-		return($piece);
-	}
+		// String to hold the NZB contents.
+		$string = '';
 
+		// Open the gzip file.
+		$gzFile = @gzopen($filePath, 'rb', 0);
+		if ($gzFile) {
+			// Append the decompressed data to the string until we find the end of file pointer.
+			while (!gzeof($gzFile)) {
+				$string .= gzread($gzFile, 1024);
+			}
+			// Close the gzip file.
+			gzclose($gzFile);
+		}
+		// Return the string.
+		return ($string === '' ? false : $string);
+	}
 }
 
 /**
@@ -189,7 +286,8 @@ function bytesToSizeString ($bytes, $precision = 0)
 		return '0B';
 	}
 	$unit = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB');
-	return round($bytes / pow(1024, ($i = floor(log($bytes, 1024)))), $precision) . $unit[(int)$i];
+
+	return round($bytes / pow(1024, ($index = floor(log($bytes, 1024)))), $precision) . $unit[(int)$index];
 }
 
 function checkStatus ($code)
@@ -626,13 +724,16 @@ function getUrl ($url, $method = 'get', $postdata = '', $language = "", $debug =
 		case 'de-de':
 			$language = "de-de";
 			break;
-		case 'en':
-			$language = 'en';
+		case 'en-us':
+			$language = "en-us";
+			break;
+		case 'en-gb':
+			$language = "en-gb";
 			break;
 		case '':
-		case 'en-us':
+		case 'en':
 		default:
-			$language = "en-us";
+			$language = 'en';
 	}
 	$header[] = "Accept-Language: " . $language;
 
@@ -689,13 +790,13 @@ function getUrl ($url, $method = 'get', $postdata = '', $language = "", $debug =
 /**
  * Fetches an embeddable video to a IMDB trailer from http://www.traileraddict.com
  *
- * @param $id
+ * @param $imdbID
  *
  * @return string
  */
-function imdb_trailers ($id)
+function imdb_trailers($imdbID)
 {
-	$xml = getUrl('http://api.traileraddict.com/?imdb=' . $id);
+	$xml = getUrl('http://api.traileraddict.com/?imdb=' . $imdbID);
 	if ($xml !== false) {
 		if (preg_match('/(<iframe.+?<\/iframe>)/i', $xml, $html)) {
 			return $html[1];
@@ -745,13 +846,13 @@ function objectsIntoArray ($arrObjData, $arrSkipIndices = array())
  */
 function runCmd ($command, $debug = false)
 {
-	$nl = PHP_EOL;
+	$eol = PHP_EOL;
 	if (isWindows() && strpos(phpversion(), "5.2") !== false) {
 		$command = "\"" . $command . "\"";
 	}
 
 	if ($debug) {
-		echo '-Running Command: ' . $nl . '   ' . $command . $nl;
+		echo '-Running Command: ' . $eol . '   ' . $command . $eol;
 	}
 
 	$output = array();
@@ -759,7 +860,7 @@ function runCmd ($command, $debug = false)
 	@exec($command, $output, $status);
 
 	if ($debug) {
-		echo '-Command Output: ' . $nl . '   ' . implode($nl . '  ', $output) . $nl;
+		echo '-Command Output: ' . $eol . '   ' . implode($eol . '  ', $output) . $eol;
 	}
 
 	return $output;
@@ -780,24 +881,21 @@ function safeFilename ($filename)
 // Central function for sending site email.
 function sendEmail($to, $subject, $contents, $from)
 {
-	if (isWindows()) {
-		$n = "\r\n";
-	} else {
-		$n = "\n";
-	}
-	$body = '<html>' . $n;
-	$body .= '<body style=\'font-family:Verdana, Verdana, Geneva, sans-serif; font-size:12px; color:#666666;\'>' . $n;
-	$body .= $contents;
-	$body .= '</body>' . $n;
-	$body .= '</html>' . $n;
+	$eol = PHP_EOL;
 
-	$headers = 'From: ' . $from . $n;
-	$headers .= 'Reply-To: ' . $from . $n;
-	$headers .= 'Return-Path: ' . $from . $n;
-	$headers .= 'X-Mailer: nZEDb' . $n;
-	$headers .= 'MIME-Version: 1.0' . $n;
-	$headers .= 'Content-type: text/html; charset=iso-8859-1' . $n;
-	$headers .= $n;
+	$body = '<html>' . $eol;
+	$body .= '<body style=\'font-family:Verdana, Verdana, Geneva, sans-serif; font-size:12px; color:#666666;\'>' . $eol;
+	$body .= $contents;
+	$body .= '</body>' . $eol;
+	$body .= '</html>' . $eol;
+
+	$headers = 'From: ' . $from . $eol;
+	$headers .= 'Reply-To: ' . $from . $eol;
+	$headers .= 'Return-Path: ' . $from . $eol;
+	$headers .= 'X-Mailer: nZEDb' . $eol;
+	$headers .= 'MIME-Version: 1.0' . $eol;
+	$headers .= 'Content-type: text/html; charset=iso-8859-1' . $eol;
+	$headers .= $eol;
 
 	return mail($to, $subject, $body, $headers);
 }

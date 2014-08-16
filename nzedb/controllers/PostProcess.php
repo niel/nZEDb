@@ -6,9 +6,9 @@ use nzedb\utility;
 class PostProcess
 {
 	/**
-	 * @var nzedb\db\DB
+	 * @var nzedb\db\Settings
 	 */
-	private $db;
+	public $pdo;
 
 	/**
 	 * @var Groups
@@ -24,12 +24,6 @@ class PostProcess
 	 * @var ReleaseFiles
 	 */
 	private $releaseFiles;
-
-	/**
-	 * Object containing site settings.
-	 * @var bool|stdClass
-	 */
-	private $site;
 
 	/**
 	 * Add par2 info to rar list?
@@ -51,7 +45,8 @@ class PostProcess
 
 	/**
 	 * Class instance of debugging.
-	 * @var Debugging
+	 *
+*@var Logger
 	 */
 	protected $debugging;
 
@@ -62,34 +57,45 @@ class PostProcess
 	protected $nameFixer;
 
 	/**
+	 * @var Par2Info
+	 */
+	protected $_par2Info;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param bool $echoOutput Echo to CLI or not?
+	 * @param array $options Pass in class instances.
 	 */
-	public function __construct($echoOutput = false)
+	public function __construct(array $options = [])
 	{
+		$defaults = [
+			'Echo'         => true,
+			'Logger'    => null,
+			'Groups'       => null,
+			'NameFixer'    => null,
+			'Nfo'          => null,
+			'ReleaseFiles' => null,
+			'Settings'     => null,
+		];
+		$options += $defaults;
+
 		//\\ Various.
-		$this->echooutput = ($echoOutput && nZEDb_ECHOCLI);
+		$this->echooutput = ($options['Echo'] && nZEDb_ECHOCLI);
 		//\\
 
 		//\\ Class instances.
-		$s = new Sites();
-		$this->db = new nzedb\db\DB();
-		$this->groups = new Groups();
+		$this->pdo = (($options['Settings'] instanceof nzedb\db\Settings) ? $options['Settings'] : new nzedb\db\Settings());
+		$this->groups = (($options['Groups'] instanceof Groups) ? $options['Groups'] : new Groups(['Settings' => $this->pdo]));
 		$this->_par2Info = new Par2Info();
-		$this->debugging = new Debugging('PostProcess');
-		$this->nameFixer = new NameFixer($this->echooutput);
-		$this->Nfo = new Nfo($this->echooutput);
-		$this->releaseFiles = new ReleaseFiles();
-		//\\
-
-		//\\ Site object.
-		$this->site = $s->get();
+		$this->debugging = ($options['Logger'] instanceof Logger ? $options['Logger'] : new Logger(['ColorCLI' => $this->pdo->log]));
+		$this->nameFixer = (($options['NameFixer'] instanceof NameFixer) ? $options['NameFixer'] : new NameFixer(['Echo' => $this->echooutput, 'Settings' => $this->pdo, 'Groups' => $this->groups]));
+		$this->Nfo = (($options['Nfo'] instanceof Nfo ) ? $options['Nfo'] : new Nfo(['Echo' => $this->echooutput, 'Settings' => $this->pdo]));
+		$this->releaseFiles = (($options['ReleaseFiles'] instanceof ReleaseFiles) ? $options['ReleaseFiles'] : new ReleaseFiles($this->pdo));
 		//\\
 
 		//\\ Site settings.
-		$this->addpar2 = ($this->site->addpar2 == 0) ? false : true;
-		$this->alternateNNTP = ($this->site->alternate_nntp == 1 ? true : false);
+		$this->addpar2 = ($this->pdo->getSetting('addpar2') == 0) ? false : true;
+		$this->alternateNNTP = ($this->pdo->getSetting('alternate_nntp') == 1 ? true : false);
 		//\\
 	}
 
@@ -102,15 +108,16 @@ class PostProcess
 	 */
 	public function processAll($nntp)
 	{
-		$this->processPredb($nntp);
 		$this->processAdditional($nntp);
-		$this->processNfos('', $nntp);
+		$this->processNfos($nntp);
 		$this->processSharing($nntp);
 		$this->processMovies();
 		$this->processMusic();
+		$this->processConsoles();
 		$this->processGames();
 		$this->processAnime();
 		$this->processTv();
+		$this->processXXX();
 		$this->processBooks();
 	}
 
@@ -121,8 +128,8 @@ class PostProcess
 	 */
 	public function processAnime()
 	{
-		if ($this->site->lookupanidb == 1) {
-			$anidb = new AniDB($this->echooutput);
+		if ($this->pdo->getSetting('lookupanidb') == 1) {
+			$anidb = new AniDB(['Echo' => $this->echooutput, 'Settings' => $this->pdo]);
 			$anidb->animetitlesUpdate();
 			$anidb->processAnimeReleases();
 		}
@@ -135,9 +142,20 @@ class PostProcess
 	 */
 	public function processBooks()
 	{
-		if ($this->site->lookupbooks != 0) {
-			$books = new Books($this->echooutput);
-			$books->processBookReleases();
+		if ($this->pdo->getSetting('lookupbooks') != 0) {
+			(new Books(['Echo' => $this->echooutput, 'Settings' => $this->pdo, ]))->processBookReleases();
+		}
+	}
+
+	/**
+	 * Lookup console games if enabled.
+	 *
+	 * @return void
+	 */
+	public function processConsoles()
+	{
+		if ($this->pdo->getSetting('lookupgames') != 0) {
+			(new Console(['Settings' => $this->pdo, 'Echo' => $this->echooutput]))->processConsoleReleases();
 		}
 	}
 
@@ -148,24 +166,26 @@ class PostProcess
 	 */
 	public function processGames()
 	{
-		if ($this->site->lookupgames != 0) {
-			$console = new Console($this->echooutput);
-			$console->processConsoleReleases();
+		if ($this->pdo->getSetting('lookupgames') != 0) {
+			(new Games(['Echo' => $this->echooutput, 'Settings' => $this->pdo]))->processGamesReleases();
 		}
 	}
 
 	/**
 	 * Lookup imdb if enabled.
 	 *
-	 * @param string $releaseToWork
+	 * @param string     $groupID       (Optional) ID of a group to work on.
+	 * @param string     $guidChar      (Optional) First letter of a release GUID to use to get work.
+	 * @param int|string $processMovies (Optional) 0 Don't process, 1 process all releases,
+	 *                                             2 process renamed releases only, '' check site setting
 	 *
 	 * @return void
 	 */
-	public function processMovies($releaseToWork = '')
+	public function processMovies($groupID = '', $guidChar = '', $processMovies = '')
 	{
-		if ($this->site->lookupimdb == 1) {
-			$movie = new Movie($this->echooutput);
-			$movie->processMovieReleases($releaseToWork);
+		$processMovies = (is_numeric($processMovies) ? $processMovies : $this->pdo->getSetting('lookupimdb'));
+		if ($processMovies > 0) {
+			(new Movie(['Echo' => $this->echooutput, 'Settings' => $this->pdo]))->processMovieReleases($groupID, $guidChar, $processMovies);
 		}
 	}
 
@@ -176,37 +196,25 @@ class PostProcess
 	 */
 	public function processMusic()
 	{
-		if ($this->site->lookupmusic != 0) {
-			$music = new Music($this->echooutput);
-			$music->processMusicReleases();
+		if ($this->pdo->getSetting('lookupmusic') != 0) {
+			(new Music(['Echo' => $this->echooutput, 'Settings' => $this->pdo]))->processMusicReleases();
 		}
 	}
 
 	/**
 	 * Process nfo files.
 	 *
-	 * @param string $releaseToWork
-	 * @param $nntp
+	 * @param NNTP   $nntp
+	 * @param string $groupID  (Optional) ID of a group to work on.
+	 * @param string $guidChar (Optional) First letter of a release GUID to use to get work.
 	 *
 	 * @return void
 	 */
-	public function processNfos($releaseToWork = '', $nntp)
+	public function processNfos(&$nntp, $groupID = '', $guidChar = '')
 	{
-		if ($this->site->lookupnfo == 1) {
-			$this->Nfo->processNfoFiles($releaseToWork, $this->site->lookupimdb, $this->site->lookuptvrage, $groupID = '', $nntp);
+		if ($this->pdo->getSetting('lookupnfo') == 1) {
+			$this->Nfo->processNfoFiles($nntp, $groupID, $guidChar, (int)$this->pdo->getSetting('lookupimdb'), (int)$this->pdo->getSetting('lookuptvrage'));
 		}
-	}
-
-	/**
-	 * Fetch titles from predb sites.
-	 *
-	 * @param $nntp
-	 *
-	 * @return void
-	 */
-	public function processPredb($nntp)
-	{
-		// 2014-05-31 : Web PreDB fetching is removed. Using IRC is now recommended.
 	}
 
 	/**
@@ -216,22 +224,34 @@ class PostProcess
 	 */
 	public function processSharing(&$nntp)
 	{
-		$sharing = new Sharing($this->db, $nntp);
-		$sharing->start();
+		(new Sharing(['Settings' => $this->pdo, 'NNTP' => $nntp]))->start();
 	}
 
 	/**
 	 * Process all TV related releases which will assign their series/episode/rage data.
 	 *
-	 * @param string $releaseToWork
+	 * @param string     $groupID   (Optional) ID of a group to work on.
+	 * @param string     $guidChar  (Optional) First letter of a release GUID to use to get work.
+	 * @param string|int $processTV (Optional) 0 Don't process, 1 process all releases,
+	 *                                         2 process renamed releases only, '' check site setting
 	 *
 	 * @return void
 	 */
-	public function processTv($releaseToWork = '')
+	public function processTv($groupID = '', $guidChar = '', $processTV = '')
 	{
-		if ($this->site->lookuptvrage == 1) {
-			$tvRage = new TvRage($this->echooutput);
-			$tvRage->processTvReleases($releaseToWork, true);
+		$processTV = (is_numeric($processTV) ? $processTV : $this->pdo->getSetting('lookuptvrage'));
+		if ($processTV > 0) {
+			(new TvRage(['Echo' => $this->echooutput, 'Settings' => $this->pdo]))->processTvReleases($groupID, $guidChar, $processTV);
+		}
+	}
+
+	/**
+	 * Lookup xxx if enabled.
+	 */
+	public function processXXX()
+	{
+		if ($this->pdo->getSetting('lookupxxx') == 1) {
+			(new XXX(['Echo' => $this->echooutput, 'Settings' => $this->pdo]))->processXXXReleases();
 		}
 	}
 
@@ -240,16 +260,15 @@ class PostProcess
 	 *
 	 * @note Called externally by tmux/bin/update_per_group and update/postprocess.php
 	 *
-	 * @param NNTP   $nntp          Class NNTP
-	 * @param string $releaseToWork String containing SQL results. Optional.
-	 * @param string $groupID       Group ID. Optional
+	 * @param NNTP       $nntp    Class NNTP
+	 * @param int|string $groupID  (Optional) ID of a group to work on.
+	 * @param string     $guidChar (Optional) First char of release GUID, can be used to select work.
 	 *
 	 * @return void
 	 */
-	public function processAdditional($nntp, $releaseToWork = '', $groupID = '')
+	public function processAdditional(&$nntp, $groupID = '', $guidChar = '')
 	{
-		$processAdditional = new ProcessAdditional($this->echooutput, $nntp, $this->db, $this->site);
-		$processAdditional->start($releaseToWork, $groupID);
+		(new ProcessAdditional(['Echo' => $this->echooutput, 'NNTP' => $nntp, 'Settings' => $this->pdo, 'Groups' => $this->groups, 'NameFixer' => $this->nameFixer, 'Nfo' => $this->Nfo, 'ReleaseFiles' => $this->releaseFiles]))->start($groupID, $guidChar);
 	}
 
 	/**
@@ -265,16 +284,18 @@ class PostProcess
 	 *
 	 * @return bool
 	 */
-	public function parsePAR2($messageID, $relID, $groupID, $nntp, $show)
+	public function parsePAR2($messageID, $relID, $groupID, &$nntp, $show)
 	{
 		if ($messageID === '') {
 			return false;
 		}
 
-		$query = $this->db->queryOneRow(
+		$query = $this->pdo->queryOneRow(
 			sprintf('
 				SELECT id, group_id, categoryid, name, searchname, UNIX_TIMESTAMP(postdate) AS post_date, id AS releaseid
-				FROM releases WHERE isrenamed = 0 AND id = %d',
+				FROM releases
+				WHERE isrenamed = 0
+				AND id = %d',
 				$relID
 			)
 		);
@@ -286,19 +307,19 @@ class PostProcess
 		// Only get a new name if the category is OTHER.
 		$foundName = true;
 		if (!in_array(
-				(int)$query['categoryid'],
-				array(
-					Category::CAT_BOOKS_OTHER,
-					Category::CAT_GAME_OTHER,
-					Category::CAT_MOVIE_OTHER,
-					Category::CAT_MUSIC_OTHER,
-					Category::CAT_PC_PHONE_OTHER,
-					Category::CAT_TV_OTHER,
-					Category::CAT_OTHER_HASHED,
-					Category::CAT_XXX_OTHER,
-					Category::CAT_MISC
-				)
+			(int)$query['categoryid'],
+			array(
+				Category::CAT_BOOKS_OTHER,
+				Category::CAT_GAME_OTHER,
+				Category::CAT_MOVIE_OTHER,
+				Category::CAT_MUSIC_OTHER,
+				Category::CAT_PC_PHONE_OTHER,
+				Category::CAT_TV_OTHER,
+				Category::CAT_OTHER_HASHED,
+				Category::CAT_XXX_OTHER,
+				Category::CAT_MISC
 			)
+		)
 		) {
 			$foundName = false;
 		}
@@ -336,9 +357,16 @@ class PostProcess
 				if ($this->addpar2) {
 					// Add to release files.
 					if ($filesAdded < 11 &&
-						$this->db->queryOneRow(
-							sprintf('SELECT id FROM releasefiles WHERE releaseid = %d AND name = %s',
-								$relID, $this->db->escapeString($file['name']))) === false
+						$this->pdo->queryOneRow(
+							sprintf('
+								SELECT id
+								FROM releasefiles
+								WHERE releaseid = %d
+								AND name = %s',
+								$relID,
+								$this->pdo->escapeString($file['name'])
+							)
+						) === false
 					) {
 
 						// Try to add the files to the DB.
@@ -361,14 +389,13 @@ class PostProcess
 
 			// If we found some files.
 			if ($filesAdded > 0) {
-				$this->debugging->start(
-					'parsePAR2', 'Added ' . $filesAdded . ' releasefiles from PAR2 for ' . $query['searchname'], 5
-				);
+				$this->debugging->log('PostProcess', 'parsePAR2', 'Added ' . $filesAdded . ' releasefiles from PAR2 for ' . $query['searchname'], Logger::LOG_INFO);
 
 				// Update the file count with the new file count + old file count.
-				$this->db->queryExec(
+				$this->pdo->queryExec(
 					sprintf('
-						UPDATE releases SET rarinnerfilecount = rarinnerfilecount + %d
+						UPDATE releases
+						SET rarinnerfilecount = rarinnerfilecount + %d
 						WHERE id = %d',
 						$filesAdded,
 						$relID

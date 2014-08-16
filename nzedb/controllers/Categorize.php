@@ -27,24 +27,24 @@ class Categorize extends Category
 	 * Release name to sort through.
 	 * @var string
 	 */
-	protected $releaseName;
+	public $releaseName;
 
 	/**
 	 * Group ID of the releasename we are sorting through.
-	 * @var int
+	 * @var int|string
 	 */
-	protected $groupID;
+	public $groupID;
 
 	/**
 	 * Construct.
+	 *
+	 * @param array $options Class instances.
 	 */
-	public function __construct()
+	public function __construct(array $options = array())
 	{
-		$s = new Sites();
-		$site = $s->get();
-		$this->categorizeForeign = ($site->categorizeforeign == "0") ? false : true;
-		$this->catWebDL = ($site->catwebdl == "0") ? false : true;
-		parent::__construct();
+		parent::__construct($options);
+		$this->categorizeForeign = ($this->pdo->getSetting('categorizeforeign') == "0") ? false : true;
+		$this->catWebDL = ($this->pdo->getSetting('catwebdl') == "0") ? false : true;
 	}
 
 	/**
@@ -53,7 +53,7 @@ class Categorize extends Category
 	 * Returns Category::CAT_MISC if no category is appropriate.
 	 *
 	 * @param string     $releaseName The name to parse.
-	 * @param string|int $groupID     The groupID.
+	 * @param int|string $groupID     The groupID.
 	 *
 	 * @return int The categoryID.
 	 */
@@ -87,7 +87,7 @@ class Categorize extends Category
 	 */
 	public function byGroup()
 	{
-		$group = $this->db->queryOneRow(sprintf('SELECT LOWER(name) AS name FROM groups WHERE id = %d', $this->groupID));
+		$group = $this->pdo->queryOneRow(sprintf('SELECT LOWER(name) AS name FROM groups WHERE id = %d', $this->groupID));
 		if ($group !== false) {
 			$group = $group['name'];
 			switch (true) {
@@ -244,6 +244,7 @@ class Categorize extends Category
 					switch (true) {
 						case $this->is0day():
 						case $this->isConsole():
+						case $this->isTV():
 							break;
 						default:
 							$this->tmpCat = Category::CAT_PC_GAMES;
@@ -370,11 +371,15 @@ class Categorize extends Category
 				case $group === 'alt.binaries.pro-wrestling':
 					$this->tmpCat = Category::CAT_TV_SPORT;
 					break;
-				case preg_match('/alt\.binaries\.sounds\.(flac(\.jazz)|jpop|lossless(\.[a-z0-9]+)?)|alt\.binaries\.(cd\.lossless|music\.flac)/i', $group):
-					if ($this->categorizeForeign && $this->isMusicForeign()) {
-						break;
+				case preg_match('/alt\.binaries\.sounds\.(flac(\.jazz)?|jpop|lossless(\.[a-z0-9]+)?)|alt\.binaries\.(cd\.lossless|music\.flac)/i', $group):
+					switch (true) {
+						case $this->categorizeForeign && $this->isMusicForeign():
+						case $this->isMusic():
+							break;
+						default:
+							$this->tmpCat = Category::CAT_MUSIC_LOSSLESS;
+							break;
 					}
-					$this->tmpCat = Category::CAT_MUSIC_LOSSLESS;
 					break;
 				case $group === 'alt.binaries.sounds.whitburn.pop':
 					switch (true) {
@@ -444,7 +449,7 @@ class Categorize extends Category
 //			return false;
 //		}
 
-		if (preg_match('/Daily[-_\.]Show|Nightly News|^\[[a-zA-Z\.\-]+\].*[-_].*\d{1,3}[-_. ]((\[|\()(h264-)?\d{3,4}(p|i)(\]|\))\s?(\[AAC\])?|\[[a-fA-F0-9]{8}\]|(8|10)BIT|hi10p)(\[[a-fA-F0-9]{8}\])?|(\d\d-){2}[12]\d{3}|[12]\d{3}(\.\d\d){2}|\d+x\d+|s\d{1,3}[-._ ]?[ed]\d{1,3}([ex]\d{1,3}|[-.\w ])|[-._ ](\dx\d\d|C4TV|Complete[-._ ]Season|DSR|(D|H|P|S)DTV|EP[-._ ]?\d{1,3}|S\d{1,3}.+Extras|SUBPACK|Season[-._ ]\d{1,2}|WEB\-DL|WEBRip)([-._ ]|$)|TV[-._ ](19|20)\d\d|TrollHD/i', $this->releaseName)
+		if (preg_match('/Daily[-_\.]Show|Nightly News|^\[[a-zA-Z\.\-]+\].*[-_].*\d{1,3}[-_. ]((\[|\()(h264-)?\d{3,4}(p|i)(\]|\))\s?(\[AAC\])?|\[[a-fA-F0-9]{8}\]|(8|10)BIT|hi10p)(\[[a-fA-F0-9]{8}\])?|(\d\d-){2}[12]\d{3}|[12]\d{3}(\.\d\d){2}|\d+x\d+|s\d{1,3}[-._ ]?[ed]\d{1,3}([ex]\d{1,3}|[-.\w ])|[-._ ](\dx\d\d|C4TV|Complete[-._ ]Season|DSR|(D|H|P|S)DTV|EP[-._ ]?\d{1,3}|S\d{1,3}.+Extras|SUBPACK|Season[-._ ]\d{1,2}|WEB\-DL|WEBRip)([-._ ]|$)|TVRIP|TV[-._ ](19|20)\d\d|TrollHD/i', $this->releaseName)
 			&& !preg_match('/[-._ ](flac|imageset|mp3|xxx)[-._ ]|[ .]exe$/i', $this->releaseName)) {
 			switch (true) {
 				case $this->isOtherTV():
@@ -544,7 +549,7 @@ class Categorize extends Category
 
 	public function isHDTV()
 	{
-		if (preg_match('/1080(i|p)|720p/i', $this->releaseName)) {
+		if (preg_match('/1080(i|p)|720p|bluray/i', $this->releaseName)) {
 			$this->tmpCat = Category::CAT_TV_HD;
 			return true;
 		}
@@ -582,7 +587,7 @@ class Categorize extends Category
 	//  Movies.
 	public function isMovie()
 	{
-		if (preg_match('/[-._ ]AVC|[-._ ]|[BH][DR]RIP|Bluray|BD[-._ ]?(25|50)?|\bBR\b|Camrip|[-._ ]\d{4}[-._ ].+(720p|1080p|Cam)|DIVX|[-._ ]DVD[-._ ]|DVD-?(5|9|R|Rip)|Untouched|VHSRip|XVID|[-._ ](DTS|TVrip)[-._ ]/i', $this->releaseName) && !preg_match('/auto(cad|desk)|divx[-._ ]plus|[-._ ]exe$|[-._ ](jav|XXX)[-._ ]|SWE6RUS|\wXXX(1080p|720p|DVD)|Xilisoft/i', $this->releaseName)) {
+		if (preg_match('/[-._ ]AVC|[-._ ]|[BH][DR]RIP|Bluray|BD[-._ ]?(25|50)?|\bBR\b|Camrip|[-._ ]\d{4}[-._ ].+(720p|1080p|Cam|HDTS)|DIVX|[-._ ]DVD[-._ ]|DVD-?(5|9|R|Rip)|Untouched|VHSRip|XVID|[-._ ](DTS|TVrip)[-._ ]/i', $this->releaseName) && !preg_match('/auto(cad|desk)|divx[-._ ]plus|[-._ ]exe$|[-._ ](jav|XXX)[-._ ]|SWE6RUS|\wXXX(1080p|720p|DVD)|Xilisoft/i', $this->releaseName)) {
 			switch (true) {
 				case $this->categorizeForeign && $this->isMovieForeign():
 				case $this->isMovieDVD():
@@ -625,7 +630,7 @@ class Categorize extends Category
 
 	public function isMovieSD()
 	{
-		if (preg_match('/(divx|dvdscr|extrascene|dvdrip|\.CAM|vhsrip|xvid(vd)?)[-._ ]/i', $this->releaseName)) {
+		if (preg_match('/(divx|dvdscr|extrascene|dvdrip|\.CAM|HDTS(-LINE)?|vhsrip|xvid(vd)?)[-._ ]/i', $this->releaseName)) {
 			$this->tmpCat = Category::CAT_MOVIE_SD;
 			return true;
 		}
@@ -672,7 +677,7 @@ class Categorize extends Category
 	public function isPC()
 	{
 		switch (true) {
-			case preg_match('/s\d{1,3}[-._ ]?[ed]\d{1,3}([ex]\d{1,3}|[-.\w ])|[^a-z0-9](FLAC|Imageset|MP3|Nintendo|PDTV|PS[23P]|SWE6RUS|UMD(RIP)?|WII|x264|XBOX(360|DVD|ONE)?|XXX)[^a-z0-9]/i', $this->releaseName):
+			case preg_match('/s\d{1,3}[-._ ]?[ed]\d{1,3}([ex]\d{1,3}|[-.\w ])|[^a-z0-9](FLAC|Imageset|PICTURESET|MP3|Nintendo|PDTV|PS[23P]|SWE6RUS|UMD(RIP)?|WII|x264|XBOX(360|DVD|ONE)?|XXX)[^a-z0-9]/i', $this->releaseName):
 				return false;
 			case $this->isPhone():
 			case $this->isMac():
@@ -717,7 +722,7 @@ class Categorize extends Category
 		switch (true) {
 			case preg_match('/[-._ ]exe$|[-._ ](utorrent|Virtualbox)[-._ ]|\b0DAY\b|incl.+crack| DRM$|>DRM</i', $this->releaseName):
 			case preg_match('/[-._ ]((32|64)bit|converter|i\d86|key(gen|maker)|freebsd|GAMEGUiDE|hpux|irix|linux|multilingual|Patch|Pro v\d{1,3}|portable|regged|software|solaris|template|unix|win2kxp2k3|win64|win(2k|32|64|all|dows|nt(2k)?(xp)?|xp)|win9x(me|nt)?|x(32|64|86))[-._ ]/i', $this->releaseName):
-			case preg_match('/\b(Adobe|auto(cad|desk)|-BEAN|Cracked|Cucusoft|CYGNUS|Divx[-._ ]Plus|\.(deb|exe)|DIGERATI|FOSI|-FONT|Key(filemaker|gen|maker)|Lynda\.com|lz0|MULTiLANGUAGE|MultiOS|-(iNViSiBLE|SPYRAL|SUNiSO|UNION|TE)|v\d{1,3}.*?Pro|[-._ ]v\d{1,3}[-._ ]|\(x(64|86)\)|Xilisoft)\b/i', $this->releaseName):
+			case preg_match('/\b(Adobe|auto(cad|desk)|-BEAN|Cracked|Cucusoft|CYGNUS|Divx[-._ ]Plus|\.(deb|exe)|DIGERATI|FOSI|-FONT|Key(filemaker|gen|maker)|Lynda\.com|lz0|MULTiLANGUAGE|Microsoft\s*(Office|Windows|Server)|MultiOS|-(iNViSiBLE|SPYRAL|SUNiSO|UNION|TE)|v\d{1,3}.*?Pro|[-._ ]v\d{1,3}[-._ ]|\(x(64|86)\)|Xilisoft)\b/i', $this->releaseName):
 				$this->tmpCat = Category::CAT_PC_0DAY;
 				return true;
 			default:
@@ -736,7 +741,7 @@ class Categorize extends Category
 
 	public function isPCGame()
 	{
-		if (preg_match('/[^a-z0-9](0x0007|ALiAS|BACKLASH|BAT|CLONECD|CPY|FAS(DOX|iSO)|FLT([-._ ]|COGENT)|-FLT(DOX)?|PC GAMES?|\(?(Game(s|z)|GAME(S|Z))\)? ?(\((C|c)\))|GENESIS|-GOG|-HATRED|HI2U|INLAWS|JAGUAR|MAZE|MONEY|OUTLAWS|PPTCLASSiCS|PC Game|PROPHET|RAiN|Razor1911|RELOADED|RiTUELYPOGEiOS|Rip-UNLEASHED|Steam(\b)?Rip|SKIDROW|TiNYiSO|CODEX)[^a-z0-9]?/', $this->releaseName)) {
+		if (preg_match('/[^a-z0-9](0x0007|ALiAS|BACKLASH|BAT|CLONECD|CPY|FAS(DOX|iSO)|FLT([-._ ]|COGENT)|-FLT(DOX)?|PC GAMES?|\(?(Game(s|z)|GAME(S|Z))\)? ?(\((C|c)\))|GENESIS|-GOG|-HATRED|HI2U|INLAWS|JAGUAR|MAZE|MONEY|OUTLAWS|PPTCLASSiCS|PC Game|PROPHET|RAiN|Razor1911|RELOADED|RiTUELYPOGEiOS|[rR][iI][pP]-[uU][nN][lL][eE][aA][sS][hH][eE][dD]|Steam(\b)?Rip|SKIDROW|TiNYiSO|CODEX)[^a-z0-9]?/', $this->releaseName)) {
 			$this->tmpCat = Category::CAT_PC_GAMES;
 			return true;
 		}
@@ -747,7 +752,7 @@ class Categorize extends Category
 	public function isXxx()
 	{
 		switch (true) {
-			case !preg_match('/\bXXX\b|(a\.b\.erotica|ClubSeventeen|Cum(ming|shot)|Err?oticax?|Porn(o|lation)?|Imageset|lesb(ians?|os?)|mastur(bation|e?bate)|My_Stepfather_Made_Me|nympho?|OLDER ANGELS|pictures\.erotica\.anime|sexontv|slut|Squirt|SWE6RUS|Transsexual|whore)/i', $this->releaseName):
+			case !preg_match('/\bXXX\b|(a\.b\.erotica|ClubSeventeen|Cum(ming|shot)|Err?oticax?|Porn(o|lation)?|Imageset|PICTURESET|JAV Uncensored|lesb(ians?|os?)|mastur(bation|e?bate)|My_Stepfather_Made_Me|nympho?|OLDER ANGELS|pictures\.erotica\.anime|sexontv|slut|Squirt|SWE6RUS|Transsexual|whore)/i', $this->releaseName):
 				return false;
 			case $this->isXxxPack():
 			case $this->isXxx264():
@@ -801,7 +806,7 @@ class Categorize extends Category
 
 	public function isXxxImageset()
 	{
-		if (preg_match('/IMAGESET|ABPEA/i', $this->releaseName)) {
+		if (preg_match('/IMAGESET|PICTURESET|ABPEA/i', $this->releaseName)) {
 			$this->tmpCat = Category::CAT_XXX_IMAGESET;
 			return true;
 		}
@@ -859,7 +864,7 @@ class Categorize extends Category
 				$this->tmpCat = Category::CAT_GAME_NDS;
 				return true;
 			}
-			if (preg_match('/(EUR|FR|GAME|HOL|JP|JPN|NL|NTSC|PAL|KS|USA)/i', $this->releaseName)) {
+			if (preg_match('/EUR|FR|GAME|HOL|JP|JPN|NL|NTSC|PAL|KS|USA|\bROMS?(et)?\b/i', $this->releaseName)) {
 				$this->tmpCat = Category::CAT_GAME_NDS;
 				return true;
 			}
@@ -930,7 +935,7 @@ class Categorize extends Category
 				$this->tmpCat = Category::CAT_GAME_PSP;
 				return true;
 			}
-			if (preg_match('/[-._ ](Dynarox|HAZARD|ITALIAN|KLB|KuDoS|LIGHTFORCE|MiRiBS|POPSTATiON|(PLAY)?ASiA|PSN|PSX2PSP|SPANiSH|SUXXORS|UMD(RIP)?|USA?|YARR)/i', $this->releaseName)) {
+			if (preg_match('/[-._ ](Dynarox|HAZARD|ITALIAN|KLB|KuDoS|LIGHTFORCE|MiRiBS|POPSTATiON|(PLAY)?ASiA|PSN|PSX2?PSP|SPANiSH|SUXXORS|UMD(RIP)?|USA?|YARR)/i', $this->releaseName)) {
 				$this->tmpCat = Category::CAT_GAME_PSP;
 				return true;
 			}
@@ -1020,6 +1025,7 @@ class Categorize extends Category
 			$this->tmpCat = Category::CAT_GAME_XBOXONE;
 			return true;
 		}
+		return false;
 	}
 
 	public function isGameXBOX()
@@ -1033,8 +1039,8 @@ class Categorize extends Category
 
 	public function isGameOther()
 	{
-		if (preg_match('/PSX|PS2/', $this->releaseName)) {
-			if (preg_match('/(EUR|FR|GAME|HOL|JP|JPN|NL|NTSC|PAL|KS|USA)/i', $this->releaseName)) {
+		if (preg_match('/\b(PS(1)X|PS2|SNES|NES|SEGA\s(GENESIS|CD)|GB(A|C)|Dreamcast|SEGA\sSaturn|Atari\s(Jaguar)?|3DO)\b/i', $this->releaseName)) {
+			if (preg_match('/EUR|FR|GAME|HOL|\bISO\b|JP|JPN|NL|NTSC|PAL|KS|USA|ROMS?(et)?/i', $this->releaseName)) {
 				$this->tmpCat = Category::CAT_GAME_OTHER;
 				return true;
 			}
@@ -1117,7 +1123,7 @@ class Categorize extends Category
 
 	public function isMusicMP3()
 	{
-		if (preg_match('/[a-z0-9]{1,12}\-(19|20)\d\d\-[a-z0-9]{1,12}|[\.\-\(\[_ ]\d{2,3}k[\.\-\)\]_ ]|\((192|256|320)\)|(320|cd|eac|vbr).+mp3|(cd|eac|mp3|vbr).+320|FIH\_INT|\s\dCDs|[-._ ]MP3[-._ ]|MP3\-\d{3}kbps|\.(m3u|mp3)"|NMR\s\d{2,3}\skbps|\(320\)\.|\-\((Bootleg|Promo)\)|\.mp3$|\-\sMP3\s(19|20)\d\d|\(vbr\)|rip(192|256|320)|[-._ ](CDR|WEB).+(19|20)\d\d/i', $this->releaseName)) {
+		if (preg_match('/[a-z0-9]{1,12}\-(19|20)\d\d\-[a-z0-9]{1,12}|[\.\-\(\[_ ]\d{2,3}k[\.\-\)\]_ ]|\((192|256|320)\)|(320|cd|eac|vbr).+mp3|(cd|eac|mp3|vbr).+320|FIH\_INT|\s\dCDs|[-._ ]MP3[-._ ]|MP3\-\d{3}kbps|\.(m3u|mp3)"|NMR\s\d{2,3}\skbps|\(320\)\.|\-\((Bootleg|Promo)\)|\.mp3$|\-\sMP3\s(19|20)\d\d|\(vbr\)|rip(192|256|320)|[-._ ](CDR|SBD|WEB).+(19|20)\d\d/i', $this->releaseName)) {
 			if ($this->isMusicForeign()) {
 				return true;
 			} else {
@@ -1125,7 +1131,7 @@ class Categorize extends Category
 				return true;
 			}
 		}
-		if (preg_match('/\s(19|20)\d\d\s([a-z0-9]{3}|[a-z]{2,})$|\-(19|20)\d\d\-(C4|MTD)(\s|\.)|[-._ ]FM.+MP3[-._ ]|-web-(19|20)\d\d(\.|\s|$)|[-._ ](SAT|WEB).+(19|20)\d\d([-._ ]|$)|[-._ ](19|20)\d\d.+(SAT|WEB)([-._ ]|$)| MP3$/i', $this->releaseName)) {
+		if (preg_match('/\s(19|20)\d\d\s([a-z0-9]{3}|[a-z]{2,})$|\-(19|20)\d\d\-(C4|MTD)(\s|\.)|[-._ ]FM.+MP3[-._ ]|-web-(19|20)\d\d(\.|\s|$)|[-._ ](SAT|SBD|WEB).+(19|20)\d\d([-._ ]|$)|[-._ ](19|20)\d\d.+(SAT|WEB)([-._ ]|$)| MP3$/i', $this->releaseName)) {
 			if ($this->isMusicForeign()) {
 				return true;
 			} else {
