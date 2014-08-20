@@ -621,14 +621,23 @@ class Binaries
 				}
 			}
 
-			// Find part / total parts. Ignore if no part count found.
-			if (preg_match('/^\s*(?!"Usenet Index Post)(.+)\s+\((\d+)\/(\d+)\)$/', $header['Subject'], $matches)) {
+			/*
+			 * Find part / total parts. Ignore if no part count found.
+			 *
+			 * \s* Trims the leading space.
+			 * (?!"Usenet Index Post) ignores these types of articles, they are useless.
+			 * (.+) Fetches the subject.
+			 * \s+ Trims trailing space after the subject.
+			 * \((\d+)\/(\d+)\) Gets the part count.
+			 * No ending ($) as there are cases of subjects with extra data after the part count.
+			 */
+			if (preg_match('/^\s*(?!"Usenet Index Post)(.+)\s+\((\d+)\/(\d+)\)/', $header['Subject'], $matches)) {
 				// Add yEnc to subjects that do not have them, but have the part number at the end of the header.
 				if (!stristr($header['Subject'], 'yEnc')) {
 					$matches[1] .= ' yEnc';
 				}
 			} else {
-				if ($this->_showDroppedYEncParts === true && strpos($header['subject'], '"Usenet Index Post') !== 0) {
+				if ($this->_showDroppedYEncParts === true && strpos($header['Subject'], '"Usenet Index Post') !== 0) {
 					file_put_contents(
 						nZEDb_LOGS . 'not_yenc' . $groupMySQL['name'] . '.dropped.log',
 						$header['Subject'] . PHP_EOL, FILE_APPEND
