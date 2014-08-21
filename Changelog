@@ -3,6 +3,32 @@ No pull requests will be accepted without this file being updated to reflect wha
 No pull requests will be accepted to any branch except the dev branch.
 New updates are grouped by person, at the top of the file.
 
+2014-08-21 bart39
+	* Fix: Amazon throttling dues to api error message change.
+	* Fix: Wrong sort method for musictrack category via amazon lookup.
+	* Add: Regex additions for ReleaseCleaning.
+	* Fix: invalid GiantBomb link in alpha theme.
+	* Fix: Error resetting games post processing.
+2014-08-21 ruhllatio
+	* Chg: Re-work RottenTomato update function to remove duplication
+	* Fix: Typo in RottenTomato function
+	* Chg: Behavior of updateSingleColumn in NameFixer
+	* Fix: A few bugs in various scripts
+	* Chg: Revamp console post processing and improve matching
+2014-08-20 ruhllatio
+	* Chg: More optimizations to MiscSorter
+	* Fix: test_misc_sorter script errors due to removed functions
+	* Fix: Tmux Query for Process Console diff using Games count
+	* Chg: Remove a ton of repeated if conditions in NameFixer with single opening ifs
+	* Chg: Add function to NameFixer to update single columns in releases table
+	* Fix: A few errors in MiscSorter due to unhandled Amazon returns
+	* Chg: Optimize NameFixer more and fix more scrutinizer bugs
+	* Fix: 2 Regex compilation errors in NameFixer
+	* Fix: A few more scrutinizer issues
+2014-08-20 kevin
+	* Add: Script to verify the important folder permisions.
+	* Chg: Make cover path checking optional, in case user has not run install yet in verify_permissions script.
+	* Chg: Catch Logger exceptions, solves blank pages for those with improper permissions on resources/logs folder/files.
 2014-08-19 ruhllatio
 	* Chg: Revamp MiscSorter
 	* Add: Categorization support by group for a.b.cd.images.sega-saturn
