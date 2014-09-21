@@ -82,6 +82,7 @@ cd ${NZEDB}
 
 echo ""
 echo "Setting application directory permissions..."
+chmod +x ./
 chmod -R 775 resources
 chmod 775 ./libs/smarty/templates_c
 chmod 775 ./www
