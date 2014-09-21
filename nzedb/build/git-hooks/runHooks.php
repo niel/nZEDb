@@ -36,7 +36,7 @@ $error = false;
  * Add all hooks BEFORE the versions are updated so they can be skipped on any errors
  */
 if ($error === false) {
-	$git = new nzedb\utility\Git();
+	$git = new \nzedb\utility\Git();
 	$branch = $git->active_branch();
 	if (in_array($branch, $git->mainBranches())) { // Only update versions, patches, etc. on specific branches to lessen conflicts
 		try {
@@ -46,6 +46,7 @@ if ($error === false) {
 		} catch (\Exception $e) {
 			$error = 1;
 			echo "Error while checking patches!\n";
+			echo $e->getMessage() . "\n";
 		}
 
 		if ($error === false) {

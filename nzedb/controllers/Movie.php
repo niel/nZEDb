@@ -145,7 +145,7 @@ class Movie
 		$options += $defaults;
 
 		$this->pdo = ($options['Settings'] instanceof Settings ? $options['Settings'] : new Settings());
-		$this->releaseImage = ($options['ReleaseImage'] instanceof ReleaseImage ? $options['ReleaseImage'] : new ReleaseImage($this->pdo));
+		$this->releaseImage = ($options['ReleaseImage'] instanceof \ReleaseImage ? $options['ReleaseImage'] : new \ReleaseImage($this->pdo));
 
 		$this->imdbLanguage = ($this->pdo->getSetting('imdblanguage') != '') ? (string)$this->pdo->getSetting('imdblanguage') : 'en';
 
@@ -254,7 +254,10 @@ class Movie
 	 */
 	public function getMovieCount($cat, $maxAge = -1, $excludedCats = array())
 	{
-		$catSearch = $this->formCategorySearchSQL($cat);
+		$catsrch = '';
+		if (count($cat) > 0 && $cat[0] != -1) {
+			$catsrch = (new \Category(['Settings' => $this->pdo]))->getCategorySearch($cat);
+		}
 
 		$res = $this->pdo->queryOneRow(
 			sprintf("
@@ -269,7 +272,7 @@ class Movie
 				AND %s %s %s %s ",
 				$this->showPasswords,
 				$this->getBrowseBy(),
-				$catSearch,
+				$catsrch,
 				($maxAge > 0 ? 'AND r.postdate > NOW() - INTERVAL ' . $maxAge . ' DAY' : ''),
 				(count($excludedCats) > 0 ? ' AND r.categoryid NOT IN (' . implode(',', $excludedCats) . ')' : '')
 			)
@@ -292,6 +295,11 @@ class Movie
 	 */
 	public function getMovieRange($cat, $start, $num, $orderBy, $maxAge = -1, $excludedCats = array())
 	{
+		$catsrch = '';
+		if (count($cat) > 0 && $cat[0] != -1) {
+			$catsrch = (new \Category(['Settings' => $this->pdo]))->getCategorySearch($cat);
+		}
+
 		$order = $this->getMovieOrder($orderBy);
 		$sql = sprintf("
 			SELECT
@@ -313,13 +321,12 @@ class Movie
 			LEFT OUTER JOIN releasenfo rn ON rn.releaseid = r.id
 			INNER JOIN movieinfo m ON m.imdbid = r.imdbid
 			WHERE r.nzbstatus = 1 AND r.imdbid != '0000000'
-			AND m.cover = 1
 			AND m.title != ''
 			AND r.passwordstatus <= %d AND %s %s %s %s
 			GROUP BY m.imdbid ORDER BY %s %s %s",
 			$this->showPasswords,
 			$this->getBrowseBy(),
-			$this->formCategorySearchSQL($cat),
+			$catsrch,
 			($maxAge > 0
 				? 'AND r.postdate > NOW() - INTERVAL ' . $maxAge . 'DAY '
 				: ''
@@ -330,42 +337,6 @@ class Movie
 			($start === false ? '' : ' LIMIT ' . $num . ' OFFSET ' . $start)
 		);
 		return $this->pdo->queryDirect($sql);
-	}
-
-	/**
-	 * Form category search SQL.
-	 *
-	 * @param $cat
-	 *
-	 * @return string
-	 */
-	protected function formCategorySearchSQL($cat)
-	{
-		$catSearch = '';
-		if (count($cat) > 0 && $cat[0] != -1) {
-			$catSearch = '(';
-			$Category = new Category(['Settings' => $this->pdo]);
-			foreach ($cat as $category) {
-				if ($category != -1) {
-
-					if ($Category->isParent($category)) {
-						$children = $Category->getChildren($category);
-						$chList = '-99';
-						foreach ($children as $child) {
-							$chList .= ', ' . $child['id'];
-						}
-
-						if ($chList != '-99') {
-							$catSearch .= ' r.categoryid IN (' . $chList . ') OR ';
-						}
-					} else {
-						$catSearch .= sprintf(' r.categoryid = %d OR ', $category);
-					}
-				}
-			}
-			$catSearch .= '1=2)';
-		}
-		return $catSearch;
 	}
 
 	/**
@@ -423,7 +394,7 @@ class Movie
 				if ($bb === 'imdb') {
 					$browseBy .= 'm.' . $bb . 'id = ' . $bbv . ' AND ';
 				} else {
-					$browseBy .= 'm.' . $bb . ' LIKE (' . $this->pdo->escapeString('%' . $bbv . '%') . ') AND ';
+					$browseBy .= 'm.' . $bb . ' ' . $this->pdo->likeString($bbv, true, true) . ' AND ';
 				}
 			}
 		}
@@ -692,7 +663,7 @@ class Movie
 	protected function fetchFanartTVProperties($imdbId)
 	{
 		if ($this->fanartapikey != '') {
-			$buffer = nzedb\utility\getUrl('http://api.fanart.tv/webservice/movie/' . $this->fanartapikey . '/tt' . $imdbId . '/xml/');
+			$buffer = nzedb\utility\Utility::getUrl(['url' => 'http://api.fanart.tv/webservice/movie/' . $this->fanartapikey . '/tt' . $imdbId . '/xml/']);
 			if ($buffer !== false) {
 				$art = @simplexml_load_string($buffer);
 				if ($art !== false) {
@@ -763,7 +734,7 @@ class Movie
 						$percent .
 						'% similar to (' .
 						$this->currentTitle . ')',
-						Logger::LOG_INFO
+						\Logger::LOG_INFO
 					);
 				}
 				return false;
@@ -822,19 +793,17 @@ class Movie
 
 		$imdb_regex_multi = array(
 			'genre' => '/href="\/genre\/(.*?)\?/i',
-			'language' => '/<a href="\/language\/.+\'url\'>(.+)<\/a>/i',
+			'language' => '/<a href="\/language\/.+?\'url\'>(.+?)<\/a>/s',
 			'type' => '/<meta property=\'og\:type\' content=\"(.+)\" \/>/i'
 		);
 
 		$buffer =
-			nzedb\utility\getUrl(
-				'http://' . ($this->imdburl === false ? 'www' : 'akas') . '.imdb.com/title/tt' . $imdbId . '/',
-				'get',
-				'',
-				(($this->pdo->getSetting('imdblanguage') != '') ? $this->pdo->getSetting('imdblanguage') : 'en'),
-				false,
-				'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) ' .
-				'Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10', 'foo=bar'
+			nzedb\utility\Utility::getUrl([
+					'url' => 'http://' . ($this->imdburl === false ? 'www' : 'akas') . '.imdb.com/title/tt' . $imdbId . '/',
+					'language' => (($this->pdo->getSetting('imdblanguage') != '') ? $this->pdo->getSetting('imdblanguage') : 'en'),
+					'useragent' => 'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) ' .
+						'Version/4.0.4 Mobile/7B334b Safari/531.21.102011-10-16 20:23:10', 'foo=bar'
+				]
 			);
 
 		if ($buffer !== false) {
@@ -870,7 +839,7 @@ class Movie
 							$percent .
 							'% similar to (' .
 							$this->currentTitle . ')',
-							Logger::LOG_INFO
+							\Logger::LOG_INFO
 						);
 					}
 					return false;
@@ -878,14 +847,14 @@ class Movie
 			}
 
 			// Actors.
-			if (preg_match('/<table class="cast_list">(.+)<\/table>/s', $buffer, $hit)) {
-				if (preg_match_all('/<a.*?href="\/name\/(nm\d{1,8})\/.+"name">(.+)<\/span>/i', $hit[0], $results, PREG_PATTERN_ORDER)) {
-					$ret['actors'] = $results[2];
+			if (preg_match('/<table class="cast_list">(.+?)<\/table>/s', $buffer, $hit)) {
+				if (preg_match_all('/<span class="itemprop" itemprop="name">\s*(.+?)\s*<\/span>/i', $hit[0], $results, PREG_PATTERN_ORDER)) {
+					$ret['actors'] = $results[1];
 				}
 			}
 
 			// Directors.
-			if (preg_match('/Directors?:([\s]+)?<\/h4>(.+)<\/div>/sU', $buffer, $hit)) {
+			if (preg_match('/itemprop="directors?".+?<\/div>/s', $buffer, $hit)) {
 				if (preg_match_all('/"name">(.*?)<\/span>/is', $hit[0], $results, PREG_PATTERN_ORDER)) {
 					$ret['director'] = $results[1];
 				}
@@ -948,7 +917,7 @@ class Movie
 		if ($lookupIMDB == 0) {
 			return;
 		}
-		$trakTv = new TraktTv(['Settings' => $this->pdo]);
+		$trakTv = new \TraktTv(['Settings' => $this->pdo]);
 
 		// Get all releases without an IMDB id.
 		$res = $this->pdo->query(
@@ -1005,11 +974,12 @@ class Movie
 
 					// Check OMDB api.
 					$buffer =
-						nzedb\utility\getUrl(
-							'http://www.omdbapi.com/?t=' .
-							urlencode($this->currentTitle) .
-							($this->currentYear !== false ? ('&y=' . $this->currentYear) : '') .
-							'&r=json'
+						nzedb\utility\Utility::getUrl([
+								'url' => 'http://www.omdbapi.com/?t=' .
+									urlencode($this->currentTitle) .
+									($this->currentYear !== false ? ('&y=' . $this->currentYear) : '') .
+									'&r=json'
+							]
 						);
 
 					if ($buffer !== false) {
@@ -1157,16 +1127,18 @@ class Movie
 	 */
 	protected function googleSearch()
 	{
-		$buffer = nzedb\utility\getUrl(
-			'https://www.google.com/search?hl=en&as_q=&as_epq=' .
-			urlencode(
-				$this->currentTitle .
-				' ' .
-				$this->currentYear
-			) .
-			'&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=all&as_sitesearch=' .
-			urlencode('www.imdb.com/title/') .
-			'&as_occt=title&safe=images&tbs=&as_filetype=&as_rights='
+		$buffer = \nzedb\utility\Utility::getUrl([
+				'url' =>
+					'https://www.google.com/search?hl=en&as_q=&as_epq=' .
+					urlencode(
+						$this->currentTitle .
+						' ' .
+						$this->currentYear
+					) .
+					'&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=all&as_sitesearch=' .
+					urlencode('www.imdb.com/title/') .
+					'&as_occt=title&safe=images&tbs=&as_filetype=&as_rights='
+			]
 		);
 
 		// Make sure we got some data.
@@ -1191,16 +1163,18 @@ class Movie
 	 */
 	protected function bingSearch()
 	{
-		$buffer = nzedb\utility\getUrl(
-			"http://www.bing.com/search?q=" .
-			urlencode(
-				'("' .
-				$this->currentTitle .
-				'" and "' .
-				$this->currentYear .
-				'") site:www.imdb.com/title/'
-			) .
-			'&qs=n&form=QBLH&filt=all'
+		$buffer = \nzedb\utility\Utility::getUrl([
+				'url' =>
+					"http://www.bing.com/search?q=" .
+					urlencode(
+						'("' .
+						$this->currentTitle .
+						'" and "' .
+						$this->currentYear .
+						'") site:www.imdb.com/title/'
+					) .
+					'&qs=n&form=QBLH&filt=all'
+			]
 		);
 
 		if ($buffer !== false) {
@@ -1220,29 +1194,31 @@ class Movie
 	 */
 	protected function yahooSearch()
 	{
-		$buffer = nzedb\utility\getUrl(
-			"http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=title&vo_vt=any&ve_vt=any&vp_vt=any&vf=all&vm=p&fl=0&fr=fp-top&p=intitle:" .
-			urlencode(
-				'intitle:' .
-				implode(' intitle:',
-					explode(
-						' ',
-						preg_replace(
-							'/\s+/',
-							' ',
-							preg_replace(
-								'/\W/',
+		$buffer = \nzedb\utility\Utility::getUrl([
+				'url' =>
+					"http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=title&vo_vt=any&ve_vt=any&vp_vt=any&vf=all&vm=p&fl=0&fr=fp-top&p=intitle:" .
+					urlencode(
+						'intitle:' .
+						implode(' intitle:',
+							explode(
 								' ',
-								$this->currentTitle
+								preg_replace(
+									'/\s+/',
+									' ',
+									preg_replace(
+										'/\W/',
+										' ',
+										$this->currentTitle
+									)
+								)
 							)
-						)
-					)
-				) .
-				' intitle:' .
-				$this->currentYear
-			) .
-			'&vs=' .
-			urlencode('www.imdb.com/title/')
+						) .
+						' intitle:' .
+						$this->currentYear
+					) .
+					'&vs=' .
+					urlencode('www.imdb.com/title/')
+			]
 		);
 
 		if ($buffer !== false) {
@@ -1334,9 +1310,9 @@ class Movie
 	{
 		$this->pdo->log->doEcho($this->pdo->log->header('Updating movie schedule using rotten tomatoes.'));
 
-		$rt = new RottenTomato($this->pdo->getSetting('rottentomatokey'));
+		$rt = new \RottenTomato($this->pdo->getSetting('rottentomatokey'));
 
-		if ($rt instanceof RottenTomato) {
+		if ($rt instanceof \RottenTomato) {
 
 			$this->_getRTData('boxoffice', $rt);
 			$this->_getRTData('theaters', $rt);
@@ -1364,23 +1340,23 @@ class Movie
 			switch ($operation) {
 				case 'boxoffice':
 					$data = $rt->getBoxOffice();
-					$update = Movie::SRC_BOXOFFICE;
+					$update = \Movie::SRC_BOXOFFICE;
 					break;
 				case 'theaters':
 					$data = $rt->getInTheaters();
-					$update = Movie::SRC_INTHEATRE;
+					$update = \Movie::SRC_INTHEATRE;
 					break;
 				case 'opening':
 					$data = $rt->getOpening();
-					$update = Movie::SRC_OPENING;
+					$update = \Movie::SRC_OPENING;
 					break;
 				case 'upcoming':
 					$data = $rt->getUpcoming();
-					$update = Movie::SRC_UPCOMING;
+					$update = \Movie::SRC_UPCOMING;
 					break;
 				case 'dvd':
 					$data = $rt->getDVDReleases();
-					$update = Movie::SRC_DVD;
+					$update = \Movie::SRC_DVD;
 					break;
 				default:
 					$data = false;
