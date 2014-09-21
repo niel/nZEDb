@@ -23,6 +23,7 @@ namespace app\models;
 
 class Predb extends \lithium\data\Model
 {
-
+	public $_meta = ['source' => 'predb'];
+	// TODO add releastionsship info for group_id
 }
 ?>
