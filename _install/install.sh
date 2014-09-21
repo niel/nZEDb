@@ -19,6 +19,8 @@ LIBS="libraries"
 LITHIUM="lithium"
 NZEDB="nZEDb"
 
+newgrp www-data
+
 if [ ! -e ${LIBS} ] || [ ! -d ${LIBS} ]
 then
 	mkdir ${LIBS}
