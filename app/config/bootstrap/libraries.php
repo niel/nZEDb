@@ -122,17 +122,19 @@ if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 /**
  * Add some plugins:
  */
-if (file_exists(LITHIUM_LIBRARY_PATH . '/li3_docs')) {
+if (is_dir(LITHIUM_LIBRARY_PATH . DS . 'li3_docs')) {
 	Libraries::add('li3_docs');
+}
+
+if (is_dir(LITHIUM_LIBRARY_PATH . DS . 'li3_quality')) {
+	Libraries::add('li3_quality');
 }
 
 Libraries::add('li3_flash_message');
 
-//Libraries::add('li3_git_php');
-
 Libraries::add('li3_mailer');
 
-Libraries::add('li3_quality');
+//Libraries::add('li3_git_php');
 
 /*
 Libraries::add('nZEDb',
