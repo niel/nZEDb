@@ -21,11 +21,19 @@
 namespace app\models;
 
 
+use lithium\data\model\Query;
+
+
 class Predb extends \lithium\data\Model
 {
 	public $_meta = ['source' => 'predb'];
 
 	public $belongsTo = ['Groups'];
+
+	public function exportToFile($timespan)
+	{
+		$query = new Query();
+	}
 }
 
 ?>
