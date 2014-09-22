@@ -138,27 +138,27 @@ class Steam
 	 */
 	public function gameRequirements()
 	{
-			if ($this->_ret = $this->_html->find("div#game_area_sys_req_leftCol", 0)) {
-				foreach ($this->_ret->find("li") as $req) {
-					$this->_res['gamerequirements']['minimum'][] = trim($req->plaintext);
-				}
-				if (false !== $key = preg_grep("/Partner Requirements/",
-											   $this->_res['gamerequirements']['minimum'])
-				) {
-					$key = array_keys($key);
-					if(isset($key[0])){
+		if ($this->_ret = $this->_html->find("div#game_area_sys_req_leftCol", 0)) {
+			foreach ($this->_ret->find("li") as $req) {
+				$this->_res['gamerequirements']['minimum'][] = trim($req->plaintext);
+			}
+			$key = preg_grep("/Partner Requirements/",
+							 $this->_res['gamerequirements']['minimum']);
+			if ($key !== false) {
+				$key = array_keys($key);
+				if (isset($key[0])) {
 					unset($this->_res['gamerequirements']['minimum'][$key[0]]);
-					}
 				}
 			}
+		}
 
-			if ($this->_ret = $this->_html->find("div#game_area_sys_req_rightCol", 0)) {
-				foreach ($this->_ret->find("li") as $req) {
-					$this->_res['gamerequirements']['recommended'][] = trim($req->plaintext);
-				}
+		if ($this->_ret = $this->_html->find("div#game_area_sys_req_rightCol", 0)) {
+			foreach ($this->_ret->find("li") as $req) {
+				$this->_res['gamerequirements']['recommended'][] = trim($req->plaintext);
 			}
+		}
 
-			return $this->_res;
+		return $this->_res;
 	}
 
 	/**
