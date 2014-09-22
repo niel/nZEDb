@@ -21,7 +21,7 @@
 namespace app\models;
 
 
-class Group extends \lithium\data\Model
+class Groups extends \lithium\data\Model
 {
 	public $hasMany = ['Predb', 'Releases'];
 }
