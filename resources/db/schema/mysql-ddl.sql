@@ -302,7 +302,8 @@ CREATE TABLE gamesinfo (
   createddate DATETIME            NOT NULL,
   updateddate DATETIME            NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE INDEX ix_gamesinfo_asin (asin)
+  UNIQUE INDEX  ix_gamesinfo_asin (asin),
+  INDEX         ix_title (title)
 )
   ENGINE = MyISAM
   DEFAULT CHARSET = utf8
@@ -387,7 +388,8 @@ CREATE TABLE menu_items (
   role      INT(11) UNSIGNED NOT NULL,
   ordinal   INT(11) UNSIGNED NOT NULL,
   menueval  VARCHAR(2000)    NOT NULL DEFAULT '',
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  INDEX ix_role_ordinal (role, ordinal)
 )
   ENGINE = MYISAM
   DEFAULT CHARSET = utf8
@@ -462,7 +464,8 @@ CREATE TABLE page_contents (
   showinmenu      INT             NOT NULL,
   status          INT             NOT NULL,
   ordinal         INT             NULL,
-  role            INT             NOT NULL DEFAULT '0'
+  role            INT             NOT NULL DEFAULT '0',
+  INDEX ix_showinmenu_status_contenttype_role (showinmenu, status, contenttype, role)
 )
   ENGINE = MYISAM
   DEFAULT CHARSET = utf8
@@ -510,7 +513,7 @@ CREATE TABLE missed_parts (
 
 DROP TABLE IF EXISTS predb;
 CREATE TABLE predb (
-  id         INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  id         INT(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
   title      VARCHAR(255)     NOT NULL DEFAULT '',
   nfo        VARCHAR(255)     NULL,
   size       VARCHAR(50)      NULL,
@@ -518,14 +521,10 @@ CREATE TABLE predb (
   predate    DATETIME                  DEFAULT NULL,
   source     VARCHAR(50)      NOT NULL DEFAULT '',
   requestid  INT(10) UNSIGNED NOT NULL DEFAULT '0',
-  group_id   INT(10) UNSIGNED NOT NULL DEFAULT '0'
-  COMMENT 'FK to groups',
-  nuked      TINYINT(1)       NOT NULL DEFAULT '0'
-  COMMENT 'Is this pre nuked? 0 no 2 yes 1 un nuked 3 mod nuked',
-  nukereason VARCHAR(255)     NULL
-  COMMENT 'If this pre is nuked, what is the reason?',
-  files      VARCHAR(50)      NULL
-  COMMENT 'How many files does this pre have ?',
+  group_id   INT(10) UNSIGNED NOT NULL DEFAULT '0'   COMMENT 'FK to groups',
+  nuked      TINYINT(1)       NOT NULL DEFAULT '0'  COMMENT 'Is this pre nuked? 0 no 2 yes 1 un nuked 3 mod nuked',
+  nukereason VARCHAR(255)     NULL  COMMENT 'If this pre is nuked, what is the reason?',
+  files      VARCHAR(50)      NULL  COMMENT 'How many files does this pre have ?',
   filename   VARCHAR(255)     NOT NULL DEFAULT '',
   searched   TINYINT(1)       NOT NULL DEFAULT '0',
   PRIMARY KEY (id),
@@ -628,7 +627,8 @@ CREATE TABLE         releases (
   INDEX ix_releases_preid_searchname          (preid, searchname),
   INDEX ix_releases_status                    (nzbstatus, iscategorized, isrenamed, nfostatus, ishashed, isrequestid,
                                                passwordstatus, dehashstatus, reqidstatus, musicinfoid, consoleinfoid,
-                                               bookinfoid, haspreview, categoryid, imdbid, rageid)
+                                               bookinfoid, haspreview, categoryid, imdbid, rageid),
+  INDEX ix_passwordstatus                     (passwordstatus)
 )
   ENGINE          = MYISAM
   DEFAULT CHARSET = utf8
@@ -955,7 +955,8 @@ CREATE TABLE users (
   cp_url         VARCHAR(255)     NULL     DEFAULT NULL,
   cp_api         VARCHAR(255)     NULL     DEFAULT NULL,
   style          VARCHAR(255)     NULL     DEFAULT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  INDEX ix_role (role)
 )
   ENGINE = MYISAM
   DEFAULT CHARSET = utf8
