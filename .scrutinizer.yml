@@ -1,3 +1,8 @@
+filter:
+    excluded_paths:
+        - libs/*
+        - resources/*
+        - vendor/*
 checks:
     php:
         code_rating: true
