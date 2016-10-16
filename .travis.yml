@@ -8,7 +8,7 @@ branches:
     - 0.x
     - Latest-testing
     - dev
-    - testing-*
+    - testing
 
 notifications:
   irc:
