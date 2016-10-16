@@ -87,6 +87,7 @@ before_script:
   - sed -i "s/'nZEDb_LOGERROR', false/'nZEDb_LOGERROR', true/" nzedb/config/settings.php
   - sed -i "s/'nZEDb_LOGFATAL', false/'nZEDb_LOGFATAL', true/" nzedb/config/settings.php
   - sed -i "s/'nZEDb_LOGQUERIES', false/'nZEDb_LOGQUERIES', true/" nzedb/config/settings.php
+  - echo "ini_set('html_errors', 'off');" >> nzedb/config/settings.php
 
 script:
   # Run nZEDb installer test script.
