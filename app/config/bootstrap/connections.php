@@ -111,9 +111,12 @@ if (file_exists($config) && !defined('nZEDb_INSTALLER')) {
 		);
 	}
 
-	define('nZEDb_COVERS',
-		realpath(nZEDb_ROOT .
-			nzedb\utility\Text::trailingSlash(app\models\Settings::value('site.main.coverspath'))));
+	if (!defined('nZEDb_INSTALLER'  || nZEDb_INSTALLER !== true)) {
+		define('nZEDb_COVERS',
+			realpath(nZEDb_ROOT .
+				nzedb\utility\Text::trailingSlash(app\models\Settings::value('site.main.coverspath'))));
+	}
+
 } else {
 	/** throw new ErrorException("Couldn't open nZEDb's configuration file!"); */
 	Connections::add('default',
