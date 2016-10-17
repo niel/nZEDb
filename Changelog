@@ -14,6 +14,7 @@ For details of when a commit makes it into the stable branch see the ReleaseNote
 	Mrg: dev => Latest-testing to prepare for updating stable 0.x to v0.6.5.3
 	Mrg: dev-move-to-settings-model branch. This is likely to have problems in it, only update if
 		you are willing to report and deal with them.
+	Fix: nZEDb_COVERS constant not getting defined.
 
 
 2016-10-16 niel
