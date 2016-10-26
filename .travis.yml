@@ -37,6 +37,7 @@ before_install:
   - composer validate
 
 install:
+  - pecl install php-imagick
   # Install composer packages.
   - composer install --prefer-dist
 
