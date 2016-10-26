@@ -32,12 +32,13 @@ addons:
     - apache2
     - libapache2-mod-fastcgi
     - curl
+    - imagemagick
 
 before_install:
   - composer validate
 
 install:
-  - pecl install imagick
+  - yes '' | pecl install imagick
   # Install composer packages.
   - composer install --prefer-dist
 
